@@ -87,7 +87,6 @@ class MazeGenerator:
     def setup(self):
         self.grid = Grid(self.size, self.scale)
         self.stack = []
-        self.points = [self.grid[-2][-1].x + self.scale // 2, self.grid[-2][-1].y + self.scale // 2 + self.scale]
         self.clock = pygame.time.Clock()
 
         self.curr_c = self.grid[0][0]
@@ -96,8 +95,9 @@ class MazeGenerator:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+                from main_page import choose_level
+                self.screen.fill((0, 0, 0))
+                choose_level()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
@@ -106,15 +106,6 @@ class MazeGenerator:
                 elif event.key == pygame.K_s:
                     pygame.image.save(self.screen, 'maze.png')
                     print('screen saved as maze.png')
-                if event.key == pygame.K_LEFT:
-                    self.points[0] -= 10
-                if event.key == pygame.K_UP:
-                    self.points[1] -= 10
-                if event.key == pygame.K_RIGHT:
-                    self.points[0] += 10
-
-                if pygame.key.get_pressed()[pygame.K_DOWN]:
-                    self.points[1] += 10
 
     def remove_walls(self, a, b):
         order_x = {1: ('left', 'right'),
@@ -163,17 +154,11 @@ class MazeGenerator:
     def draw(self):
         self.screen.fill(BLACK)
         self.draw_cells()
-        self.player = pygame.draw.circle(self.screen, 'red', self.points, self.scale // 2 - 5)
         self.update()
 
     def main_loop(self):
         while True:
             self.handle_events()
             self.draw()
-            self.clock.tick(100)
+            self.clock.tick(60)
             pygame.display.flip()
-
-
-if __name__ == '__main__':
-    generator = MazeGenerator((600, 480), 50)
-    generator.main_loop()
