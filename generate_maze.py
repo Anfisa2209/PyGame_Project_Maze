@@ -103,10 +103,6 @@ class MazeGenerator:
                 if event.key == pygame.K_r:
                     self.setup()
 
-                elif event.key == pygame.K_s:
-                    pygame.image.save(self.screen, 'maze.png')
-                    print('screen saved as maze.png')
-
     def remove_walls(self, a, b):
         order_x = {1: ('left', 'right'),
                    -1: ('right', 'left')}.get(a.j - b.j, None)
