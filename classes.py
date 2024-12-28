@@ -27,9 +27,9 @@ class Creature():
         elif direction == 'down':
             y += self.speed
         if direction == 'left':
-            y -= self.speed
+            x -= self.speed
         elif direction == 'right':
-            y += self.speed
+            x += self.speed
     # Собственно, движение
 
 
