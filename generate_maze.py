@@ -153,6 +153,7 @@ class MazeGenerator:
         self.update()
 
     def main_loop(self):
+        pygame.display.set_caption('Играть')
         while True:
             self.handle_events()
             self.draw()
