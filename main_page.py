@@ -32,6 +32,7 @@ MANAGER = pygame_gui.UIManager(WINDOW_SIZE)
 CLOCK = pygame.time.Clock()
 screen.blit(maze_image, (0, 0))
 exit_btn = authorise_btn = settings_btn = statistics_btn = instructions_btn = None
+USER_ID = 0
 
 
 class Button:
@@ -81,11 +82,11 @@ class Button:
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
             if self.task == 'Выйти':
-                do_exit()
+                sys.exit()  # Это надо доработать, я не знаю, как это исправить
             if self.task == 'Авторизоваться':
-                from authorise_window import main
+                from authorise_window import main as authorise_main
                 OPENED_MENU = False
-                main()
+                authorise_main()
 
     def hover(self, mouse_pos):
         if self.check_mouse_pos(mouse_pos):
@@ -131,7 +132,7 @@ def open_close_menu():
         pygame.draw.rect(screen, '#2E8B57', points)
         exit_image = pygame.transform.scale(load_image('buttons/button.png', -1), (200, 70))
         exit_btn = Button(image=exit_image, x_pos=WINDOW_SIZE[0] - exit_image.get_width() // 2,
-                          y_pos=WINDOW_SIZE[1] - exit_image.get_height(), text='ВЫХОД', font_size=30, task='Выйти')
+                          y_pos=WINDOW_SIZE[1] - exit_image.get_height(), text='ВЫЙТИ', font_size=30, task='Выйти')
 
         button_image = load_image('buttons/button.png', (255, 255, 255))
         image_size = (100, 40)
@@ -152,25 +153,7 @@ def open_close_menu():
     pygame.display.update()
 
 
-def do_exit():
-    '''показывает окошко, которое спрашивает у пользователя, действительно ли он хочет выйти'''
-    """пока глючит, если нажимать кнопку Выход"""
-    confirmation_dialog = pygame_gui.windows.UIConfirmationDialog(
-        rect=pygame.Rect((250, 200), (300, 200)),
-        manager=MANAGER,
-        window_title='Подтвердите действие',
-        action_long_desc='Вы уверены, что хотите выйти?',
-        blocking=True)
-    for event in pygame.event.get():
-        if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
-            if confirmation_dialog.confirm_button:
-                sys.exit()
-            if confirmation_dialog.close_window_button or confirmation_dialog.cancel_button:
-                main()
-
-
 def main():
-    screen.fill((0, 0, 0))
     pygame.display.set_caption('Главная страница')
     screen.blit(maze_image, (0, 0))
     time_delta = CLOCK.tick(60) / 1000.0
@@ -185,7 +168,12 @@ def main():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                do_exit()
+                pygame_gui.windows.UIConfirmationDialog(
+                    rect=pygame.Rect((250, 200), (300, 200)),
+                    manager=MANAGER,
+                    window_title='Подтвердите действие',
+                    action_long_desc='Вы уверены, что хотите выйти?',
+                    blocking=True)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for btn in all_buttons:
                     btn.on_click(pygame.mouse.get_pos())
