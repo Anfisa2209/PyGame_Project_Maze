@@ -1,4 +1,4 @@
-class Creature():
+class Creature:
 
     def __init__(self, type):
         super.__init__(type)
@@ -18,7 +18,7 @@ class Creature():
         self.health -= damage
         if self.health <= 0:
             self.do_die()
-        #Получение урона, если хп меньше либо равно нулю, то смерть
+        # Получение урона, если хп меньше либо равно нулю, то смерть
 
     def move(self, direction):
         x, y = self.get_pos()
@@ -37,19 +37,41 @@ class Enemy(Creature):
 
     def get_path(self):
         pass
-        # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+        # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону
+        # и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+
     def check_can_attack(self):
         pass
-        #Тут проверяем, можем ли атаковать
+        # Тут проверяем, можем ли атаковать
+
     def do_attack(self):
         pass
-    #Атака
+    # Атака
+
 
 class Player(Creature):
     def do_attack(self):
         pass
-    #Атака
+    # Атака
 
     def take_weapon(self):
         pass
-    #Берём оружие
+    # Берём оружие
+
+
+class Weapon:
+    def __int__(self):
+        pass
+
+    def do_shooting(self):
+        pass
+    # Анимация стрельбы
+
+    def check_shooting(self):
+        pass
+    # Проверка попадания оружия во врага
+
+    def take_weapon(self):
+        pass
+    # Исчезновение экземпляра класса и добавление оружия в "список" боеприпасов игрока
+
