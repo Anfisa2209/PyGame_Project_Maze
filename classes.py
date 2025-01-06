@@ -30,8 +30,8 @@ class Creature(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
         self.is_alive = True
-        #Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо. Creature будет наследником pygame.sprite.Sprite, чтобы было удобнее передвигаться и ставить картинки
-
+        #Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
+        # Creature будет наследником pygame.sprite.Sprite, чтобы было удобнее передвигаться и ставить картинки
 
     def do_die(self):
         self.is_alive = False
@@ -41,7 +41,7 @@ class Creature(pygame.sprite.Sprite):
         self.health -= damage
         if self.health <= 0:
             self.do_die()
-        #Получение урона, если хп меньше либо равно нулю, то смерть
+        # Получение урона, если хп меньше либо равно нулю, то смерть
 
     def move(self, direction):
         if direction == 'up':
@@ -59,13 +59,17 @@ class Enemy(Creature):
 
     def get_path(self):
         pass
-        # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+        # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону
+        # и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+
     def check_can_attack(self):
         pass
-        #Тут проверяем, можем ли атаковать
+        # Тут проверяем, можем ли атаковать
+
     def do_attack(self):
         pass
-    #Атака
+    # Атака
+
 
 class Player(Creature):
     def __init__(self, type, *group, pic_name, pos):
@@ -85,25 +89,30 @@ class Player(Creature):
 
     def set_current(self, type):
         self.current_weapon = type
-    #Меняем оружие
+    # Меняем оружие
 
     def do_attack(self):
-        self.attacking_weapons.append(Weapon(flying=True, type=self.current_weapon, direction=self.direction))
-    #Атака
+        pass
+    # Атака
 
     def take_weapon(self):
         pass
-    #Берём оружие
+    # Берём оружие
 
     def take_cherry(self):
         if self.health < 10:
             self.health += 1
         else:
             pass
-    #берём вишенку
+    # берём вишенку
+
     def interaction(self):
         pass
-    #взаимодействие
+    # взаимодействие
+
+
+# self.attacking_weapons.append(Weapon(flying=True, type=self.current_weapon, direction=self.direction))
+
 
 class Weapon(pygame.sprite.Sprite):
     def __init__(self, type, *group, pic_name, pos, direction, flying):
@@ -118,7 +127,10 @@ class Weapon(pygame.sprite.Sprite):
         self.flying = flying
         self.visible = True
         self.cells_to_fly = type
-        #Параметр type - тип оружия, flying - летит ли оружие(летит - когда кинул игрок, не летит - когда лежит на земле), visible - то же самое, что и is_alive у Creature, cells_to_fly - кол-во клеток, которое ещё может пролететь оружие
+        # Параметр type - тип оружия, flying - летит ли оружие(летит - когда кинул игрок,
+        # не летит - когда лежит на земле),
+        # visible - то же самое, что и is_alive у Creature, cells_to_fly - кол-во клеток,
+        # которое ещё может пролететь оружие
 
     def do_fly(self, direction):
         pass
