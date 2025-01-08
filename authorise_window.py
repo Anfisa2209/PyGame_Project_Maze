@@ -43,7 +43,7 @@ def write_text(text, x_pos, y_pos, size=25):
     screen.blit(text, (x_pos, y_pos))
 
 
-def check_password(password, repeat_password=''):
+def check_password(password):
     global password_error_text
     if len(password) < 8:
         password_error_text = 'Длина не может быть меньше 8'
