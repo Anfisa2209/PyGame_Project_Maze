@@ -1,37 +1,26 @@
-import os
 import sys
 
 import pygame
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    if colorkey is not None:
-        image = image.convert()
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
+from main_page import load_image
 
 
 class Creature(pygame.sprite.Sprite):
-
-    def __init__(self, type, *group, pic_name, pos):
-        super().__init__(type, *group, pic_name, pos)
-        self.image = load_image(pic_name)
+    def __init__(self, type, pic_name, pos, *group):
+        super().__init__(*group)
+        self.image = load_image(pic_name, -1)
+        self.pic_name = pic_name
         self.health = type
         self.speed = 2
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
+        self.animation = []
         self.is_alive = True
-        #Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
+        # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
         # Creature будет наследником pygame.sprite.Sprite, чтобы было удобнее передвигаться и ставить картинки
+
+        self.frame = 0  # текущий кадр
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 80  # как быстро кадры меняются
 
     def do_die(self):
         self.is_alive = False
@@ -54,6 +43,38 @@ class Creature(pygame.sprite.Sprite):
             self.rect.x += self.speed
     # Собственно, движение
 
+    def update(self):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_w]:
+            if self.do_animation('up'):
+                self.move('up')
+        if key[pygame.K_s]:
+            if self.do_animation('down'):
+                self.move('down')
+        if key[pygame.K_d]:
+            if self.do_animation('right'):
+                self.move('right')
+        if key[pygame.K_a]:
+            if self.do_animation('left'):
+                self.move('left')
+
+    def do_animation(self, direction):
+        now = pygame.time.get_ticks()
+        directory = self.pic_name.split("/")[0]
+        if direction == 'left':
+            self.animation = [pygame.transform.flip(load_image(f'{directory}/go_right/img_{i}.png'), True, False)
+                              for i in range(1, 5)]
+        else:
+            self.animation = [load_image(f'{directory}/go_{direction}/img_{i}.png') for i in range(1, 5)]
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(self.animation):
+                self.frame = 0
+            self.image = self.animation[self.frame]
+            return True
+        return
+
 
 class Enemy(Creature):
 
@@ -72,8 +93,8 @@ class Enemy(Creature):
 
 
 class Player(Creature):
-    def __init__(self, type, *group, pic_name, pos):
-        super().__init__(type, *group, pic_name, pos)
+    def __init__(self, type, pic_name, pos, *group,):
+        super().__init__( type, pic_name, pos, *group)
         self.image = load_image(pic_name)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
@@ -140,3 +161,27 @@ class Weapon(pygame.sprite.Sprite):
 
     def check_hit_wall(self):
         pass
+
+
+if __name__ == '__main__':
+    pygame.init()
+    WINDOW_SIZE = (967, 560)
+    screen = pygame.display.set_mode(WINDOW_SIZE)
+
+    all_sprites = pygame.sprite.Group()
+    creature = Player(30, 'ninja_player/ninja_player.png', (900, 510), all_sprites)
+
+    clock = pygame.time.Clock()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+        all_sprites.update()
+        creature.update()
+
+        screen.fill([20, 108, 121])
+        all_sprites.draw(screen)
+        pygame.display.flip()
+
+        clock.tick(60)
