@@ -93,6 +93,9 @@ class Button:
                     from authorise_window import main as authorise_main
                     OPENED_MENU = False
                     authorise_main()
+                else:
+                    from personal_account import main
+                    main(USER_ID)
             if self.task == 'карта игрока':
                 self.update()
                 edit_current_player()

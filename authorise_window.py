@@ -4,11 +4,10 @@ import pygame
 import pygame_gui
 from pygame_gui.elements import UIButton, UITextEntryLine
 
-from main_page import load_image, WINDOW_SIZE
+from main_page import maze_image, WINDOW_SIZE
 
 pygame.init()
 screen = pygame.display.set_mode(WINDOW_SIZE)
-maze_image = load_image('maze_fon.jpg', (255, 255, 255))
 USER_ID = 0
 
 MANAGER = pygame_gui.UIManager(WINDOW_SIZE)
