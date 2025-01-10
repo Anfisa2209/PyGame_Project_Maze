@@ -1,6 +1,7 @@
 import os
 import sys
 from random import randint
+import sqlite3
 
 import pygame
 import pygame_gui
@@ -32,7 +33,11 @@ MANAGER = pygame_gui.UIManager(WINDOW_SIZE)
 CLOCK = pygame.time.Clock()
 screen.blit(maze_image, (0, 0))
 exit_btn = authorise_btn = settings_btn = statistics_btn = instructions_btn = confirmation_window = None
+cur_player_rect = player1_rect = player2_rect = []  # список координат картинок карточек
 USER_ID = 0
+connect = sqlite3.connect('maze_db')
+cursor = connect.cursor()
+players_pos = {'current': 'ninja_player', 'small_player1': 'elf_player', 'small_player2': 'black_player'}
 
 
 class Button:
@@ -88,10 +93,9 @@ class Button:
                     from authorise_window import main as authorise_main
                     OPENED_MENU = False
                     authorise_main()
-
-    def hover(self, mouse_pos):
-        if self.check_mouse_pos(mouse_pos):
-            print(1)
+            if self.task == 'карта игрока':
+                self.update()
+                edit_current_player()
 
     def check_mouse_pos(self, mouse_pos):
         """проверяет, что мышка находится внутри кнопки"""
@@ -99,6 +103,24 @@ class Button:
         if mouse_x in range(self.rect.left, self.rect.right) and mouse_y in range(self.rect.top, self.rect.bottom):
             return True
         return
+
+
+def edit_current_player():
+    """меняет текущего песонажа"""
+    global players_pos
+    x, y = pygame.mouse.get_pos()
+    if (x in range(cur_player_rect[0], cur_player_rect[0] + cur_player_rect[2])
+            and y in range(cur_player_rect[1], cur_player_rect[1] + cur_player_rect[3])):
+        pass
+    if (x in range(player1_rect[0], player1_rect[0] + player1_rect[2])
+            and y in range(player1_rect[1], player1_rect[1] + player1_rect[3])):
+        players_pos['current'], players_pos['small_player1'] = players_pos['small_player1'], players_pos['current']
+    if (x in range(player2_rect[0], player2_rect[0] + player2_rect[2])
+            and y in range(player2_rect[1], player2_rect[1] + player2_rect[3])):
+        players_pos['current'], players_pos['small_player2'] = players_pos['small_player2'], players_pos['current']
+    if USER_ID:
+        cursor.execute('''UPDATE Person SET player = ? WHERE id = ?''', (players_pos['current'], USER_ID))
+        connect.commit()
 
 
 def choose_level():
@@ -167,7 +189,7 @@ def show_confirmation_window():
 
 
 def main(user_id):
-    global USER_ID, CONFIRMATION_WINDOW_EXISTS
+    global USER_ID, CONFIRMATION_WINDOW_EXISTS, cur_player_rect, player1_rect, player2_rect, players_pos
     USER_ID = user_id
     pygame.display.set_caption('Главная страница')
     screen.blit(maze_image, (0, 0))
@@ -178,8 +200,22 @@ def main(user_id):
                          y_pos=(WINDOW_SIZE[1] - play_btn_image.get_height()) // 2, task='Играть')
     menu_image = load_image('buttons/eye_menu.png', -1)  # картинка кнопки меню
     menu_button = Button(image=menu_image, x_pos=WINDOW_SIZE[0] - 50, y_pos=40, task='Меню')
-    all_buttons = [play_button, menu_button]
+    cur_player_card = Button(load_image('cards/player_card.png', -1), x_pos=150, y_pos=WINDOW_SIZE[0] / 4,
+                             task='карта игрока')
 
+    small_card_image = pygame.transform.scale(load_image('cards/player_card.png', -1), (100, 100))
+    small_player_card1 = Button(small_card_image, x_pos=95, y_pos=430, task='карта игрока')
+    small_player_card2 = Button(small_card_image,
+                                x_pos=small_player_card1.image.get_width() + small_player_card1.x_pos + 5,
+                                y_pos=430, task='карта игрока')
+    cur_player_rect, player1_rect, player2_rect = cur_player_card.rect, small_player_card1.rect, small_player_card2.rect
+    players_images = list(players_pos.values())  # получаем всех игроков
+    player = cursor.execute('''SELECT player FROM Person WHERE id = ?''', (USER_ID,)).fetchone()[
+        0] if USER_ID else 'ninja_player'
+    players_images.remove(player)  # удаляем текущего - в списке только игроки для маленьких карточек
+    players_pos = {'current': player, 'small_player1': players_images[0], 'small_player2': players_images[1]}
+
+    all_buttons = [play_button, menu_button, cur_player_card, small_player_card1, small_player_card2, ]
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -193,20 +229,27 @@ def main(user_id):
                     close_x, close_y, close_width, close_height = confirmation_window.close_window_button.rect
                     if (mouse_x in range(cancel_x, cancel_x + cancel_width) and
                         mouse_y in range(cancel_y, cancel_y + cancel_height)) or \
-                        (mouse_x in range(close_x, close_x + close_width)
-                         and mouse_y in range(close_y, close_y + close_height)):
+                            (mouse_x in range(close_x, close_x + close_width)
+                             and mouse_y in range(close_y, close_y + close_height)):
                         CONFIRMATION_WINDOW_EXISTS = False
             if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                 sys.exit()
             MANAGER.process_events(event)
         screen.blit(maze_image, (0, 0))
-        points = [(WINDOW_SIZE[0] * 3 / 4, 0), WINDOW_SIZE]
-        pygame.draw.rect(screen, '#2E8B57', points) if OPENED_MENU else None
+        pygame.draw.rect(screen, '#2E8B57', [(WINDOW_SIZE[0] * 3 / 4, 0), WINDOW_SIZE]) if OPENED_MENU else None
         if OPENED_MENU:
             all_buttons.extend((exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn))
         MANAGER.update(time_delta)
         for btn in all_buttons:
             btn.update()
+        current_player_image = Button(pygame.transform.scale(load_image(f'players/{players_pos["current"]}.png', -1),
+                                                             (200, 200)), 145, WINDOW_SIZE[0] / 4, task='')
+        small_player1 = Button(load_image(f'players/{players_pos["small_player1"]}.png', -1), 95, 430, task='')
+        small_player2 = Button(load_image(f'players/{players_pos["small_player2"]}.png', -1),
+                               small_player_card1.image.get_width() + small_player_card1.x_pos + 5, 430, task='')
+        current_player_image.update()
+        small_player1.update()
+        small_player2.update()
         MANAGER.draw_ui(screen)
         pygame.display.update()
 

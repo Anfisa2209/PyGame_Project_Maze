@@ -34,6 +34,8 @@ sign_in_btn = UIButton(relative_rect=pygame.Rect((WINDOW_SIZE[0] // 2 - 95, 430)
                        text='Нет аккаунта? Создайте', manager=MANAGER)
 
 password_error_text = name_error_text = ''
+password_text_pos = WINDOW_SIZE[0] // 2 - 125, 230  # позиция password_error_text, чтобы было удобнее менять
+name_text_pos = WINDOW_SIZE[0] // 2 - 125, 150  # позиция name_error_text, чтобы было удобнее менять
 
 
 def write_text(text, x_pos, y_pos, size=25):
@@ -65,10 +67,10 @@ def check_password(password):
 def check_login(login):
     global name_error_text
     if len(login) == 0:
-        write_text('Имя не может быть пустым', WINDOW_SIZE[0] // 2 - 125, 150)
+        write_text('Имя не может быть пустым', *name_text_pos)
         return
     if not login.replace(' ', ''):
-        write_text('Имя не может состоять только из пробелов', WINDOW_SIZE[0] // 2 - 125, 150)
+        write_text('Имя не может состоять только из пробелов', *name_text_pos)
     else:
         name_error_text = ''
         return True
@@ -85,16 +87,16 @@ def log_in():
     if not check_login(name):
         write_text(name_error_text, WINDOW_SIZE[0] // 2 - 125, 70)
     if not check_password(password):
-        write_text(password_error_text, WINDOW_SIZE[0] // 2 - 125, 230)
+        write_text(password_error_text, *password_text_pos)
     if check_login(name) and check_password(password):
         sql_request = '''SELECT id FROM Person WHERE name = ? AND password = ?'''
         user_id = cursor.execute(sql_request, (name, password)).fetchone()
-        USER_ID = user_id
         if user_id:
+            USER_ID = user_id[0]
             from main_page import main
             main(USER_ID)
         else:
-            write_text('Неправильный логин/пароль, \nпопробуйте еще раз', WINDOW_SIZE[0] // 2 - 125, 230)
+            write_text('Неправильный логин/пароль, \nпопробуйте еще раз', *password_text_pos)
 
 
 def create_account():
@@ -106,12 +108,14 @@ def create_account():
     if not check_login(name):
         write_text(name_error_text, WINDOW_SIZE[0] // 2 - 125, 70)
     if not check_password(password):
-        write_text(password_error_text, WINDOW_SIZE[0] // 2 - 125, 230)
-    if repeat_password != password:
-        write_text('Пароли не совпадают', WINDOW_SIZE[0] // 2 - 125, 230)
+        write_text(password_error_text, *password_text_pos)
+    if repeat_password and repeat_password != password:
+        write_text('Пароли не совпадают', *password_text_pos)
+    if cursor.execute('''SELECT id FROM Person WHERE name = ?''', (name,)).fetchone():
+        write_text('Такой логин уже существует - придумайте другой', *name_text_pos)
     if check_login(name) and check_password(password) and password == repeat_password:
         sql_request = '''INSERT INTO Person (name, password, player) VALUES (?, ?, ?)'''
-        cursor.execute(sql_request, (name, password, 'first_player'))
+        cursor.execute(sql_request, (name, password, 'ninja_player'))
         connect.commit()
         user_id = cursor.execute('''SELECT id FROM Person WHERE name = ? AND password = ?''',
                                  (name, password)).fetchone()[0]
@@ -130,23 +134,13 @@ def main():
             if event.type == pygame.QUIT:
                 from main_page import main
                 main(USER_ID)
-            if event.type == pygame_gui.UI_TEXT_ENTRY_CHANGED:
-                if event.ui_element == name_entry:
-                    check_login(name_entry.get_text())
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == log_in_btn:
                     # если сейчас на кнопке написано "Зарегистрироваться" и на нее нажали,
                     # то вызывается функция create_account; иначе, если написано "Войти", оно входит
-                    if log_in_btn.text == 'Зарегистрироваться':
-                        create_account()
-                    else:
-                        log_in()
+                    create_account() if log_in_btn.text == 'Зарегистрироваться' else log_in()
                 if event.ui_element == sign_in_btn:
-                    if sign_in_btn.text == 'Есть аккаунт? Войдите':
-                        log_in()
-                    else:
-                        create_account()
-
+                    log_in() if sign_in_btn.text == 'Есть аккаунт? Войдите' else create_account()
             MANAGER.process_events(event)
 
         MANAGER.update(time_delta)
