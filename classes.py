@@ -24,6 +24,7 @@ class Creature(pygame.sprite.Sprite):
 
     def do_die(self):
         self.is_alive = False
+
     # В этой функции существо умирает и удаляестя с поля(опционально - анимация смерти)
 
     def get_hit(self, damage):
@@ -41,6 +42,7 @@ class Creature(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         elif direction == 'right':
             self.rect.x += self.speed
+
     # Собственно, движение
 
     def update(self):
@@ -75,6 +77,18 @@ class Creature(pygame.sprite.Sprite):
             return True
         return
 
+    def get_coords(self, pos_event):
+        f = open('for_get_coords.csv', 'r')
+        copy_f = f.readlines()
+        column = len(copy_f) - 1
+        row = copy_f[0].count('0')
+        board = [[0 for i in range(row)] for j in range(column)]
+        width = int(copy_f[-1])
+        left, top = 0, 0  # Отступы если вдруг основное поле не будет вплотную прилегать к окну
+        if (pos_event[0] in range(left, width * len(board[0]) + left) and pos_event[1]
+                in range(top, width * len(board) + top)):
+            return (pos_event[0] - left) // width, (pos_event[1] - left) // width
+
 
 class Enemy(Creature):
 
@@ -83,9 +97,11 @@ class Enemy(Creature):
         # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону
         # и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
 
-    def check_can_attack(self):
-        pass
-        # Тут проверяем, можем ли атаковать
+    def check_can_attack(self, pos_enemy, pos_hero):
+        x_hero, y_hero = self.get_coords(pos_hero)
+        x_enemy, y_enemy = self.get_coords(pos_enemy)
+        return x_enemy == x_hero or y_enemy == y_hero
+        # Сюда нужно ещедобавить проверку на впередистоящие стены
 
     def do_attack(self):
         pass
@@ -93,8 +109,8 @@ class Enemy(Creature):
 
 
 class Player(Creature):
-    def __init__(self, type, pic_name, pos, *group,):
-        super().__init__( type, pic_name, pos, *group)
+    def __init__(self, type, pic_name, pos, *group, ):
+        super().__init__(type, pic_name, pos, *group)
         self.image = load_image(pic_name)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
@@ -110,14 +126,17 @@ class Player(Creature):
 
     def set_current(self, type):
         self.current_weapon = type
+
     # Меняем оружие
 
     def do_attack(self):
         pass
+
     # Атака
 
     def take_weapon(self):
         pass
+
     # Берём оружие
 
     def take_cherry(self):
@@ -125,6 +144,7 @@ class Player(Creature):
             self.health += 1
         else:
             pass
+
     # берём вишенку
 
     def interaction(self):
