@@ -62,7 +62,7 @@ class Enemy(Creature):
         # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
     def check_can_attack(self):
         pass
-        #Тут проверяем, можем ли атаковать
+        #Тут проверяем, можем ли атаковать(стоим ли в упор к игроку)
     def do_attack(self):
         pass
     #Атака
@@ -105,6 +105,14 @@ class Player(Creature):
         pass
     #взаимодействие
 
+
+class Cherry(pygame.sprite.Sprite):
+    def __init__(self, *group, pos):
+        super().__init__(*group, pos)
+        self. is_visible = True
+
+    def get_taken(self):
+        self.is_visible = 0
 class Weapon(pygame.sprite.Sprite):
     def __init__(self, type, *group, pic_name, pos, direction, flying):
         super().__init__(type, *group, pic_name, pos, direction, flying)

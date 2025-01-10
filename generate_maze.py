@@ -83,6 +83,7 @@ class MazeGenerator:
         self.size, self.scale = size, scale
         self.setup()
         self.screen = pygame.display.set_mode(list(map(sum, zip(size, [2, 2]))))
+        self.is_full = False
 
     def setup(self):
         self.grid = Grid(self.size, self.scale)
@@ -147,14 +148,24 @@ class MazeGenerator:
         elif len(self.stack) != 0:
             self.curr_c = self.stack.pop(-1)
 
+        if len(self.stack) == 0:
+            self.is_full = True
+
     def draw(self):
-        self.screen.fill(BLACK)
-        self.draw_cells()
-        self.update()
+        if not self.is_full:
+            self.draw_cells()
+            self.screen.fill(BLACK)
+            font = pygame.font.Font(None, 200)
+            text = font.render('Loading...', True, (255, 255, 255))
+            self.screen.blit(text, (200, 200))
+            self.update()
+        else:
+            self.screen.fill(BLACK)
+            self.draw_cells()
+            self.update()
 
     def main_loop(self):
         while True:
             self.handle_events()
             self.draw()
-            self.clock.tick(60)
             pygame.display.flip()

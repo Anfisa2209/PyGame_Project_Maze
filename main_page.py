@@ -4,7 +4,7 @@ from random import randint
 
 import pygame
 import pygame_gui
-from generate_maze import MazeGenerator
+import game_code
 
 
 def load_image(task, colorkey=None):
@@ -74,8 +74,7 @@ class Button:
                     cell_size = randint(20, 30)
                 else:
                     cell_size = randint(10, 20)
-                generator = MazeGenerator(WINDOW_SIZE, cell_size)
-                generator.main_loop()
+                game_code.start_game(WINDOW_SIZE, cell_size)
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
