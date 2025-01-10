@@ -15,6 +15,7 @@ class Wall:
 
 class Cell:
     def __init__(self, i, j, w):
+        self.w = w
         self.i, self.j = i, j
         self.x, self.y = x, y = j * w, i * w
 
@@ -45,6 +46,15 @@ class Grid:
         self.rows = int(size[1] / scale)
 
         self.grid = self.build_grid()
+        self.width = self.grid[0][0].w
+        self.board = [[0 for i in range(len(self.grid[0]))] for j in range(len(self.grid))]
+
+        f = open('for_get_coords.csv', 'w')
+        for i in self.board:
+            f.write(str(i))
+            f.write('\n')
+        f.write(str(self.width))
+        f.close()
 
     def __getitem__(self, i):
         return self.grid[i]
