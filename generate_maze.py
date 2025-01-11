@@ -94,6 +94,8 @@ class MazeGenerator:
         self.setup()
         self.screen = pygame.display.set_mode(list(map(sum, zip(size, [2, 2]))))
         self.is_full = False
+        self.walls = []
+        self.flag_wall_ready = True
 
     def setup(self):
         self.grid = Grid(self.size, self.scale)
@@ -113,6 +115,9 @@ class MazeGenerator:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     self.setup()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print(event.pos)
+            # Позже уберем, пока еще надо
 
     def remove_walls(self, a, b):
         order_x = {1: ('left', 'right'),
@@ -141,7 +146,10 @@ class MazeGenerator:
 
             for wall in cell.walls.values():
                 if wall.exists:
+                    self.walls.append(wall.line) if wall.line not in self.walls else False
                     pygame.draw.line(self.screen, WHITE, *wall.line, width=2)
+                else:
+                    self.walls.remove(wall.line) if wall.line in self.walls else False
 
     def update(self):
         neighbours = self.grid.get_cells(self.curr_c.neighbours())
@@ -173,6 +181,13 @@ class MazeGenerator:
             self.screen.fill(BLACK)
             self.draw_cells()
             self.update()
+            if self.flag_wall_ready:
+                f = open('wall.csv', 'w')
+                for i in self.walls:
+                    f.write(str([k for j in i for k in j if str(k).isdigit()]))
+                    f.write('\n')
+                f.close()
+                self.flag_wall_ready = False
 
     def main_loop(self):
         while True:
