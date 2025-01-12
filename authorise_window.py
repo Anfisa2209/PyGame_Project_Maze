@@ -23,59 +23,69 @@ name_entry = UITextEntryLine(
 password_entry = UITextEntryLine(
     relative_rect=pygame.Rect((WINDOW_SIZE[0] // 2 - 125, 180), entry_size),
     manager=MANAGER, placeholder_text='Введите пароль')
+password_entry.set_forbidden_characters([' '])
 repeat_password_entry = UITextEntryLine(  # если регистрируются
     relative_rect=pygame.Rect((WINDOW_SIZE[0] // 2 - 125, 260), entry_size),
     manager=MANAGER, placeholder_text='Повторите пароль', visible=0)
-
+repeat_password_entry.set_forbidden_characters([' '])
 log_in_btn = UIButton(relative_rect=pygame.Rect((WINDOW_SIZE[0] // 2 - 125, 350), entry_size),
                       text='Войти', manager=MANAGER)
 sign_in_btn = UIButton(relative_rect=pygame.Rect((WINDOW_SIZE[0] // 2 - 95, 430), (200, 30)),
                        text='Нет аккаунта? Создайте', manager=MANAGER)
 
-password_error_text = name_error_text = ''
-password_text_pos = WINDOW_SIZE[0] // 2 - 125, 230  # позиция password_error_text, чтобы было удобнее менять
-name_text_pos = WINDOW_SIZE[0] // 2 - 125, 150  # позиция name_error_text, чтобы было удобнее менять
+password_text_pos = WINDOW_SIZE[0] // 2 - 125, 230  # чтобы было удобнее менять позицию текста ошибки
+name_text_pos = WINDOW_SIZE[0] // 2 - 125, 150
 
 
-def write_text(text, x_pos, y_pos, size=25):
-    screen.blit(maze_image, (0, 0))
+def write_text(screen_to_write_on, text, x_pos, y_pos, size=25):
+    """пишет текст"""
+    screen_to_write_on.blit(maze_image, (0, 0))
     font = pygame.font.Font(None, size)
     text = font.render(text, True, (255, 0, 0))
-    screen.blit(text, (x_pos, y_pos))
+    screen_to_write_on.blit(text, (x_pos, y_pos))
 
 
-def check_password(password):
-    global password_error_text
+def check_password(password, repeat_password_exists=False):
+    """проверяет пароль"""
     if len(password) < 8:
-        password_error_text = 'Длина не может быть меньше 8'
-        return
+        write_text(screen, 'Длина не может быть меньше 8', *password_text_pos)
     elif password.isdigit():
-        password_error_text = 'Добавьте букву'
-        return
+        write_text(screen, 'Добавьте букву', *password_text_pos)
     elif not [i for i in password if i.isdigit()]:
-        password_error_text = 'Добавьте цифру'
-        return
+        write_text(screen, 'Добавьте цифру', *password_text_pos)
     elif ' ' in password:
-        password_error_text = 'Уберите пробел(ы)'
-        return
+        write_text(screen, 'Уберите пробел(ы)', *password_text_pos)
     else:
-        password_error_text = ''
+        if repeat_password_exists:
+            return passwords_match(password, repeat_password_entry.get_text())
+        else:
+            write_text(screen, '', *password_text_pos)
+            return True
+
+
+def passwords_match(password, second_password):
+    """проверяет, что пароли совпадают"""
+    if second_password != password:
+        write_text(screen, 'Пароли не совпадают', *password_text_pos)
+    else:
+        write_text(screen, '', *password_text_pos)
         return True
 
 
 def check_login(login):
-    global name_error_text
+    """проверяет логин"""
     if len(login) == 0:
-        write_text('Имя не может быть пустым', *name_text_pos)
+        write_text(screen, 'Имя не может быть пустым', *name_text_pos)
         return
-    if not login.replace(' ', ''):
-        write_text('Имя не может состоять только из пробелов', *name_text_pos)
+    if login.isspace():
+        write_text(screen, 'Имя не может состоять только из пробелов', *name_text_pos)
     else:
-        name_error_text = ''
+        write_text(screen, '', *name_text_pos)
         return True
 
 
 def log_in():
+    """входит в аккаунт"""
     global USER_ID
     screen.blit(maze_image, (0, 0))
     repeat_password_entry.visible = 0
@@ -83,47 +93,47 @@ def log_in():
     log_in_btn.set_text('Войти')
 
     name, password = name_entry.get_text(), password_entry.get_text()
-    if not check_login(name):
-        write_text(name_error_text, WINDOW_SIZE[0] // 2 - 125, 70)
-    if not check_password(password):
-        write_text(password_error_text, *password_text_pos)
     if check_login(name) and check_password(password):
-        sql_request = '''SELECT id FROM Person WHERE name = ? AND password = ?'''
-        user_id = cursor.execute(sql_request, (name, password)).fetchone()
+        user_id = cursor.execute('SELECT id FROM Person WHERE name = ? AND password = ?', (name, password)).fetchone()
+        print("check_login", user_id)
         if user_id:
             USER_ID = user_id[0]
             from main_page import main
             main(USER_ID)
         else:
-            write_text('Неправильный логин/пароль, \nпопробуйте еще раз', *password_text_pos)
+            write_text(screen, 'Неправильный логин/пароль, \nпопробуйте еще раз', *password_text_pos)
 
 
 def create_account():
+    """создает аккаунт"""
     global USER_ID
     repeat_password_entry.visible = 1
     sign_in_btn.set_text('Есть аккаунт? Войдите')
     log_in_btn.set_text('Зарегистрироваться')
     name, password, repeat_password = name_entry.get_text(), password_entry.get_text(), repeat_password_entry.get_text()
-    if not check_login(name):
-        write_text(name_error_text, WINDOW_SIZE[0] // 2 - 125, 70)
-    if not check_password(password):
-        write_text(password_error_text, *password_text_pos)
-    if repeat_password and repeat_password != password:
-        write_text('Пароли не совпадают', *password_text_pos)
-    if cursor.execute('''SELECT id FROM Person WHERE name = ?''', (name,)).fetchone():
-        write_text('Такой логин уже существует - придумайте другой', *name_text_pos)
-    if check_login(name) and check_password(password) and password == repeat_password:
-        sql_request = '''INSERT INTO Person (name, password, player) VALUES (?, ?, ?)'''
-        cursor.execute(sql_request, (name, password, 'ninja_player'))
+    password_exists = cursor.execute('SELECT id FROM Person WHERE password = ?', (password,)).fetchone()
+    if check_login(name) and check_password(password, True) and password == repeat_password and not password_exists:
+        cursor.execute('INSERT INTO Person (name, password, player) VALUES (?, ?, ?)', (name, password, 'ninja_player'))
         connect.commit()
-        user_id = cursor.execute('''SELECT id FROM Person WHERE name = ? AND password = ?''',
+        user_id = cursor.execute('SELECT id FROM Person WHERE name = ? AND password = ?',
                                  (name, password)).fetchone()[0]
         USER_ID = user_id
         from main_page import main
         main(user_id)
+    if password_exists:
+        write_text(screen, 'Такой пароль уже существует - придумайте другой', *password_text_pos)
 
 
 def main():
+    global USER_ID
+    USER_ID = 0
+    name_entry.set_text('')
+    password_entry.set_text('')
+    repeat_password_entry.set_text('')
+    repeat_password_entry.visible = False
+    log_in_btn.set_text(text='Войти')
+    sign_in_btn.set_text(text='Нет аккаунта? Создайте')
+
     screen.blit(maze_image, (0, 0))
     pygame.display.set_caption('Войти/Зарегистрироваться')
     time_delta = CLOCK.tick(60) / 1000.0
@@ -132,6 +142,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 from main_page import main
+                print(USER_ID, 'go to main from quit authorise_window')
                 main(USER_ID)
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == log_in_btn:

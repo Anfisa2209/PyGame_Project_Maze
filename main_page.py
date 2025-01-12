@@ -29,6 +29,7 @@ WINDOW_SIZE = (950, 560)
 OPENED_MENU = CONFIRMATION_WINDOW_EXISTS = False  # открыто ли сейчас окно меню и есть ли окно для подтверждения
 screen = pygame.display.set_mode(WINDOW_SIZE)
 maze_image = load_image('maze_fon.jpg', (255, 255, 255))
+button_image = load_image('buttons/button.png', -1)
 MANAGER = pygame_gui.UIManager(WINDOW_SIZE)
 CLOCK = pygame.time.Clock()
 screen.blit(maze_image, (0, 0))
@@ -89,7 +90,7 @@ class Button:
             if self.task == 'Выйти':
                 show_confirmation_window()
             if self.task == 'Авторизоваться':
-                if not USER_ID:
+                if USER_ID == 0:
                     from authorise_window import main as authorise_main
                     OPENED_MENU = False
                     authorise_main()
@@ -97,7 +98,6 @@ class Button:
                     from personal_account import main
                     main(USER_ID)
             if self.task == 'карта игрока':
-                self.update()
                 edit_current_player()
 
     def check_mouse_pos(self, mouse_pos):
@@ -129,23 +129,36 @@ def edit_current_player():
 def choose_level():
     """выбор уровня"""
     global OPENED_MENU
-    level_image = load_image('buttons/button.png', (255, 255, 255))
-    easy_level = Button(level_image, x_pos=460, y_pos=240, text='Легкий', task='Легкий уровень')
-    medium_level = Button(level_image, x_pos=460, y_pos=300, text='Средний', task='Средний уровень')
-    hard_level = Button(level_image, x_pos=460, y_pos=360, text='Сложный', task='Сложный уровень')
-    level_buttons = [easy_level, medium_level, hard_level]
+    easy_level = Button(button_image, x_pos=460, y_pos=240, text='Легкий', task='Легкий уровень')
+    medium_level = Button(button_image, x_pos=460, y_pos=300, text='Средний', task='Средний уровень')
+    hard_level = Button(button_image, x_pos=460, y_pos=360, text='Сложный', task='Сложный уровень')
+    go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
+    buttons = [easy_level, medium_level, hard_level]
+    time_delta = CLOCK.tick(60) / 1000.0
+
     screen.blit(maze_image, (0, 0))
     while True:
+        print(CONFIRMATION_WINDOW_EXISTS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                OPENED_MENU = False
-                main(USER_ID)
+                show_confirmation_window()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                for btn in level_buttons:
+                for btn in buttons:
                     btn.on_click(pygame.mouse.get_pos())
-        for btn in level_buttons:
-            btn.update()
+                if go_back.check_mouse_pos(pygame.mouse.get_pos()) and not CONFIRMATION_WINDOW_EXISTS:
+                    main(USER_ID)
+                if CONFIRMATION_WINDOW_EXISTS:
+                    check_confirmation_window()
 
+            if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                sys.exit()
+            MANAGER.process_events(event)
+        screen.blit(maze_image, (0, 0))
+        for btn in buttons:
+            btn.update()
+        go_back.update()
+        MANAGER.update(time_delta)
+        MANAGER.draw_ui(screen)
         pygame.display.update()
 
 
@@ -155,21 +168,19 @@ def open_close_menu():
     if OPENED_MENU:
         points = [(WINDOW_SIZE[0] * 3 / 4, 0), WINDOW_SIZE]
         pygame.draw.rect(screen, '#2E8B57', points)
-        exit_image = pygame.transform.scale(load_image('buttons/button.png', -1), (200, 70))
+        exit_image = pygame.transform.scale(button_image, (200, 70))
         exit_btn = Button(image=exit_image, x_pos=WINDOW_SIZE[0] - exit_image.get_width() // 2,
                           y_pos=WINDOW_SIZE[1] - exit_image.get_height(), text='ВЫЙТИ', font_size=30, task='Выйти')
 
-        button_image = load_image('buttons/button.png', (255, 255, 255))
         image_size = (100, 40)
-        button_image = pygame.transform.scale(button_image, image_size)
-
-        authorise_btn = Button(image=button_image, x_pos=850, y_pos=150, task='Авторизоваться',
+        small_button_image = pygame.transform.scale(button_image, image_size)
+        authorise_btn = Button(image=small_button_image, x_pos=850, y_pos=150, task='Авторизоваться',
                                icon='icons/authorise_icon.png')
-        settings_btn = Button(image=button_image, x_pos=850, y_pos=210, task='Настройки',
+        settings_btn = Button(image=small_button_image, x_pos=850, y_pos=210, task='Настройки',
                               icon='icons/settings_icon.png')
-        statistics_btn = Button(image=button_image, x_pos=850, y_pos=260, task='Статистика',
+        statistics_btn = Button(image=small_button_image, x_pos=850, y_pos=260, task='Статистика',
                                 icon='icons/graphiques_icon.png')
-        instructions_btn = Button(image=button_image, x_pos=850, y_pos=320, task='Инструкция',
+        instructions_btn = Button(image=small_button_image, x_pos=850, y_pos=320, task='Инструкция',
                                   icon='icons/instruction_icon.png')
 
     else:
@@ -186,9 +197,19 @@ def show_confirmation_window():
         window_title='Подтвердите действие',
         action_long_desc='Вы уверены, что хотите выйти?')
     CONFIRMATION_WINDOW_EXISTS = True
-    event = pygame.event.poll()
-    if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
-        sys.exit()
+
+
+def check_confirmation_window():
+    """проверяет и меняет состояние CONFIRMATION_WINDOW_EXISTS"""
+    global CONFIRMATION_WINDOW_EXISTS
+    cancel_x, cancel_y, cancel_width, cancel_height = confirmation_window.cancel_button.rect
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    close_x, close_y, close_width, close_height = confirmation_window.close_window_button.rect
+    if (mouse_x in range(cancel_x, cancel_x + cancel_width) and
+        mouse_y in range(cancel_y, cancel_y + cancel_height)) or \
+            (mouse_x in range(close_x, close_x + close_width)
+             and mouse_y in range(close_y, close_y + close_height)):
+        CONFIRMATION_WINDOW_EXISTS = False
 
 
 def main(user_id):
@@ -227,14 +248,7 @@ def main(user_id):
                 for btn in all_buttons:
                     btn.on_click(pygame.mouse.get_pos())
                 if CONFIRMATION_WINDOW_EXISTS:
-                    cancel_x, cancel_y, cancel_width, cancel_height = confirmation_window.cancel_button.rect
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    close_x, close_y, close_width, close_height = confirmation_window.close_window_button.rect
-                    if (mouse_x in range(cancel_x, cancel_x + cancel_width) and
-                        mouse_y in range(cancel_y, cancel_y + cancel_height)) or \
-                            (mouse_x in range(close_x, close_x + close_width)
-                             and mouse_y in range(close_y, close_y + close_height)):
-                        CONFIRMATION_WINDOW_EXISTS = False
+                    check_confirmation_window()
             if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                 sys.exit()
             MANAGER.process_events(event)
