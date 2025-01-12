@@ -69,12 +69,15 @@ class Button:
                 choose_level()
             if self.task in ['Легкий уровень', 'Средний уровень', 'Сложный уровень']:
                 if self.task == 'Легкий уровень':
+                    difficulty = 1
                     cell_size = randint(50, 60)
                 elif self.task == 'Средний уровень':
+                    difficulty = 2
                     cell_size = randint(20, 30)
                 else:
                     cell_size = randint(10, 20)
-                game_code.start_game(WINDOW_SIZE, cell_size)
+                    difficulty = 3
+                game_code.start_game(WINDOW_SIZE, cell_size, difficulty)
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()

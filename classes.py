@@ -134,8 +134,8 @@ class Enemy(Creature):
 
 
 class Player(Creature):
-    def __init__(self, type, *group, pic_name, pos):
-        super().__init__(type, *group, pic_name, pos)
+    def __init__(self, *group, pic_name, pos):
+        super().__init__(*group, pic_name, pos)
         self.image = load_image(pic_name)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
@@ -171,9 +171,11 @@ class Player(Creature):
             pass
 
     # берём вишенку
-    def interaction(self):
+
+    def jump(self):
         pass
-    # взаимодействие
+
+    #Прыжок
 
 
 class Cherry(pygame.sprite.Sprite):
@@ -186,7 +188,7 @@ class Cherry(pygame.sprite.Sprite):
 
 
 class Weapon(pygame.sprite.Sprite):
-    def __init__(self, type, *group, pic_name, pos, direction, flying):
+    def __init__(self, type, *group, pic_name, pos, direction='right', flying=False):
         super().__init__(type, *group, pic_name, pos, direction, flying)
         self.image = load_image(pic_name)
         self.rect = self.image.get_rect()
@@ -201,6 +203,9 @@ class Weapon(pygame.sprite.Sprite):
         # Параметр type - тип оружия, flying - летит ли оружие(летит - когда кинул игрок, не летит - когда лежит на
         # земле), visible - то же самое, что и is_alive у Creature, cells_to_fly - кол-во клеток, которое ещё может
         # пролететь оружие
+
+    def get_taken(self):
+        self.visible = False
 
     def do_fly(self, direction):
         pass
