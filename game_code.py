@@ -18,28 +18,28 @@ def start_game(window_size, cell_size, difficulty):
         cherries_group = pygame.sprite.Group
         weapons_group = pygame.sprite.Group
         for i in range (3 * difficulty):
-            enemy_type = random.randint(10)
+            enemy_type = random.randint(0, 10)
             if enemy_type <= 7:
                 type = 1
             elif enemy_type <= 9:
                 type = 2
             else:
                 type = 3
-            enemy = classes.Enemy(type, monster_group, monster_pic_name, (random.randint(window_size[0]//cell_size) * cell_size, random.randint(window_size[1]//cell_size) * cell_size))
+            enemy = classes.Enemy(type, monster_group, pic_name=monster_pic_name, pos=(random.randint(0, window_size[0] // cell_size) * cell_size, random.randint(0, window_size[1] // cell_size) * cell_size))
             monsters.append(enemy)
-        player = classes.Player(player_pic_name, (((window_size[0]//cell_size) - 1) * cell_size, ((window_size[1]//cell_size) - 1) * cell_size))
+        player = classes.Player(pic_name=player_pic_name, pos=(((window_size[0]//cell_size) - 1) * cell_size, ((window_size[1]//cell_size) - 1) * cell_size))
         for i in range(difficulty * 3):
-            cherry = classes.Cherry(cherries, (random.randint(window_size[0]//cell_size) * cell_size, random.randint(window_size[1]//cell_size) * cell_size))
+            cherry = classes.Cherry(cherries, pos=(random.randint(0, window_size[0] // cell_size) * cell_size, random.randint(0, window_size[1] // cell_size) * cell_size))
             cherries.append(cherry)
         for i in range(difficulty * 10):
-            weapon_type = random.randint(10)
-            if enemy_type <= 5:
+            weapon_type = random.randint(0, 10)
+            if weapon_type <= 5:
                 type = 1
-            elif enemy_type <= 8:
+            elif weapon_type <= 8:
                 type = 2
             else:
                 type = 3
-            weapon = classes.Weapon(type, weapons_group, weapon_pic_name, (random.randint(window_size[0]//cell_size) * cell_size, random.randint(window_size[1]//cell_size) * cell_size))
+            weapon = classes.Weapon(type, weapons_group, pic_name=weapon_pic_name, pos=(random.randint(0, window_size[0] // cell_size) * cell_size, random.randint(0, window_size[1] // cell_size) * cell_size))
             weapons.append(weapon)
             #monster_pic_name, player_pic_name и weapon_pic_name - названия картинк игрока, монстра и оружия
             while in_game:
@@ -63,11 +63,13 @@ def start_game(window_size, cell_size, difficulty):
                         elif event.key == pygame.K_d:
                             player.rect.x -= player.speed
                         elif event.key == pygame.K_e:
-                            if pygame.sprite.spritecollide(player, cherries_group, False)[0] in cherries_group:
+                            cherry = pygame.sprite.spritecollide(player, cherries_group, False)
+                            if cherry:
                                 cherry.get_taken()
                                 cherries_group.remove(cherry)
                                 cherries.remove(cherry)
-                            elif pygame.sprite.spritecollide(player, weapons_group, False)[0] in weapons_group:
+                            weapon = pygame.sprite.spritecollide(player, weapons_group, False)
+                        elif weapon:
                                 weapon.get_taken()
                                 weapons_group.remove(weapon)
                                 weapon.remove(weapon)
@@ -76,34 +78,34 @@ def start_game(window_size, cell_size, difficulty):
                             #Тут пауза
                     elif event.type == WAVE:
                         for i in range(3 * difficulty):
-                            enemy_type = random.randint(10)
+                            enemy_type = random.randint(0, 10)
                             if enemy_type <= 7:
                                 type = 1
                             elif enemy_type <= 9:
                                 type = 2
                             else:
                                 type = 3
-                            enemy = classes.Enemy(type, monster_group, monster_pic_name, (
-                            random.randint(window_size[0] // cell_size) * cell_size,
-                            random.randint(window_size[1] // cell_size) * cell_size))
+                            enemy = classes.Enemy(type=type, monster_group, pic_name=monster_pic_name, pos=(
+                            random.randint(0, window_size[0] // cell_size) * cell_size,
+                            random.randint(0, window_size[1] // cell_size) * cell_size))
                             monsters.append(enemy)
-                        player = classes.Player(player_pic_name, (((window_size[0] // cell_size) - 1) * cell_size,
+                        player = classes.Player(pic_name=player_pic_name, pos=(((window_size[0] // cell_size) - 1) * cell_size,
                                                                   ((window_size[1] // cell_size) - 1) * cell_size))
                         for i in range(difficulty * 3):
-                            cherry = classes.Cherry(cherries, (random.randint(window_size[0] // cell_size) * cell_size,
-                                                               random.randint(window_size[1] // cell_size) * cell_size))
+                            cherry = classes.Cherry(cherries, pos=(random.randint(0, window_size[0] // cell_size) * cell_size,
+                                                               random.randint(0, window_size[1] // cell_size) * cell_size))
                             cherries.append(cherry)
                         for i in range(difficulty * 10):
-                            weapon_type = random.randint(10)
-                            if enemy_type <= 5:
+                            weapon_type = random.randint(0, 10)
+                            if weapon_type <= 5:
                                 type = 1
-                            elif enemy_type <= 8:
+                            elif weapon_type <= 8:
                                 type = 2
                             else:
                                 type = 3
-                            weapon = classes.Weapon(type, weapons_group, weapon_pic_name, (
-                            random.randint(window_size[0] // cell_size) * cell_size,
-                            random.randint(window_size[1] // cell_size) * cell_size))
+                            weapon = classes.Weapon(type, weapons_group, pic_name=weapon_pic_name, pos=(
+                            random.randint(0, window_size[0] // cell_size) * cell_size,
+                            random.randint(0, window_size[1] // cell_size) * cell_size))
                             weapons.append(weapon)
                 if player.health == 0:
                     in_game = False
