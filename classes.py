@@ -52,17 +52,21 @@ def check_conflict_with_wall(pos):
 
 
 class Creature(pygame.sprite.Sprite):
-
-    def __init__(self, type, *group, pic_name, pos):
-        super().__init__(type, *group, pic_name, pos)
-        self.image = load_image(pic_name)
+    def __init__(self, type, pic_name, pos, *group):
+        super().__init__(*group)
+        self.image = load_image(pic_name, -1)
+        self.pic_name = pic_name
         self.health = type
         self.speed = 2
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
         self.is_alive = True
+        self.animation = []  # список с картинками для анимации
         # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо. Creature будет
         # наследником pygame.sprite.Sprite, чтобы было удобнее передвигаться и ставить картинки
+        self.frame = 0  # текущий кадр
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 80  # как быстро кадры меняются
 
     def do_die(self):
         self.is_alive = False
@@ -84,6 +88,38 @@ class Creature(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         elif direction == 'right':
             self.rect.x += self.speed
+
+    def update(self):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_w]:
+            if self.do_animation('up'):
+                self.move('up')
+        elif key[pygame.K_s]:
+            if self.do_animation('down'):
+                self.move('down')
+        elif key[pygame.K_d]:
+            if self.do_animation('right'):
+                self.move('right')
+        elif key[pygame.K_a]:
+            if self.do_animation('left'):
+                self.move('left')
+
+    def do_animation(self, direction):
+        now = pygame.time.get_ticks()
+        directory = self.pic_name.split("/")[0]
+        if direction == 'left':
+            self.animation = [pygame.transform.flip(load_image(f'{directory}/go_right/img_{i}.png'), True, False)
+                              for i in range(1, 5)]
+        else:
+            self.animation = [load_image(f'{directory}/go_{direction}/img_{i}.png') for i in range(1, 5)]
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(self.animation):
+                self.frame = 0
+            self.image = self.animation[self.frame]
+            return True
+        return
 
     # Собственно, движение
 
@@ -134,9 +170,9 @@ class Enemy(Creature):
 
 
 class Player(Creature):
-    def __init__(self, *group, pic_name, pos):
-        super().__init__(*group, pic_name, pos)
-        self.image = load_image(pic_name)
+    def __init__(self, type=0, pic_name='', pos=(), *group):
+        super().__init__(type, pic_name, pos, *group)
+        self.image = load_image(pic_name, -1)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
         self.is_alive = True
@@ -160,36 +196,35 @@ class Player(Creature):
     # Атака
 
     def take_weapon(self):
+        # Берём оружие
         pass
 
-    # Берём оружие
-
     def take_cherry(self):
+        # берём вишенку
         if self.health < 10:
             self.health += 1
         else:
             pass
 
-    # берём вишенку
-
     def jump(self):
         pass
 
-    #Прыжок
+    # Прыжок
 
 
 class Cherry(pygame.sprite.Sprite):
-    def __init__(self, *group, pos):
-        super().__init__(*group, pos)
+    def __init__(self, pos, *group):
+        super().__init__(*group)
         self.is_visible = True
+        self.pos = pos
 
     def get_taken(self):
         self.is_visible = 0
 
 
 class Weapon(pygame.sprite.Sprite):
-    def __init__(self, type, *group, pic_name, pos, direction='right', flying=False):
-        super().__init__(type, *group, pic_name, pos, direction, flying)
+    def __init__(self, type, pic_name, pos, direction='right', flying=False, *group):
+        super().__init__(*group)
         self.image = load_image(pic_name)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
