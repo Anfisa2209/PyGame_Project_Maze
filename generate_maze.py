@@ -190,7 +190,7 @@ class MazeGenerator:
                 self.flag_wall_ready = False
 
     def main_loop(self):
-        while True:
+        while not self.is_full:
             self.handle_events()
             self.draw()
             pygame.display.flip()

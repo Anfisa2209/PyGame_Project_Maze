@@ -26,16 +26,16 @@ def start_game(window_size, cell_size, difficulty):
                 type = 2
             else:
                 type = 3
-            enemy = classes.Enemy(type, monster_pic_name, (
+            enemy = classes.Enemy(type, 'monster.png', (
                 random.randint(0, window_size[0] // cell_size) * cell_size,
                 random.randint(0, window_size[1] // cell_size) * cell_size), monster_group)
             monsters.append(enemy)
 
-        player = classes.Player(pic_name=player_pic_name, pos=(
+        player = classes.Player(pic_name='ninja_player/ninja_player.png', pos=(
             ((window_size[0] // cell_size) - 1) * cell_size, ((window_size[1] // cell_size) - 1) * cell_size))
         for _ in range(difficulty * 3):
-            cherry = classes.Cherry(cherries, (random.randint(0, window_size[0] // cell_size) * cell_size,
-                                               random.randint(0, window_size[1] // cell_size) * cell_size))
+            cherry = classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
+                                               random.randint(0, window_size[1] // cell_size) * cell_size), cherries_group)
             cherries.append(cherry)
         for i in range(difficulty * 10):
             weapon_type = random.randint(0, 10)
@@ -45,20 +45,20 @@ def start_game(window_size, cell_size, difficulty):
                 type = 2
             else:
                 type = 3
-            weapon = classes.Weapon(type, weapon_pic_name, (
+            weapon = classes.Weapon(type, 'weapon' + str(type) + '.png', (
                 random.randint(0, window_size[0] // cell_size) * cell_size,
                 random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
             weapons.append(weapon)
             # monster_pic_name, player_pic_name и weapon_pic_name - названия картинк игрока, монстра и оружия
             while in_game:
                 for monster in monsters:
-                    monster_pos = monster.get_coords()
-                    player_pos = player.get_coords()
+                    monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
+                    player_pos = player.get_coords((player.rect.x, player.rect.y))
                     if monster.check_can_attack(monster_pos, player_pos):
                         monster.do_attack()
                     else:
                         monster.get_path()
-                        monster.move(direction)
+                        #monster.move(direction)
                         # переменную direction я ещё не знаю, как получаем, пока так, потом изменю
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
@@ -85,18 +85,18 @@ def start_game(window_size, cell_size, difficulty):
                                 type = 2
                             else:
                                 type = 3
-                            enemy = classes.Enemy(type, monster_pic_name,
+                            enemy = classes.Enemy(type, 'monster.png',
                                                   (random.randint(0, window_size[0] // cell_size) * cell_size,
                                                    random.randint(0, window_size[1] // cell_size) * cell_size),
                                                   monster_group)
                             monsters.append(enemy)
-                        player = classes.Player(type=1, pic_name=player_pic_name,
+                        player = classes.Player(type=1, pic_name='ninja_player/ninja_player.png',
                                                 pos=(((window_size[0] // cell_size) - 1) * cell_size,
                                                      ((window_size[1] // cell_size) - 1) * cell_size), )
                         for i in range(difficulty * 3):
                             cherry = classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
                                                      random.randint(0, window_size[1] // cell_size) * cell_size),
-                                                    cherries)
+                                                    cherries_group)
                             cherries.append(cherry)
                         for i in range(difficulty * 10):
                             weapon_type = random.randint(0, 10)
@@ -106,7 +106,7 @@ def start_game(window_size, cell_size, difficulty):
                                 type = 2
                             else:
                                 type = 3
-                            weapon = classes.Weapon(type, weapon_pic_name, (
+                            weapon = classes.Weapon(type, 'weapon' + str(type) + '.png', (
                                 random.randint(0, window_size[0] // cell_size) * cell_size,
                                 random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
                             weapons.append(weapon)
