@@ -1,9 +1,8 @@
-import sys
-
 import pygame
 from pygame_gui.elements import UIButton, UITextEntryLine
 import pygame_gui
-from main_page import WINDOW_SIZE, maze_image, CLOCK, cursor, connect
+from main_page import WINDOW_SIZE, CLOCK, cursor, connect, create_confirmation_window, terminate, maze_image, go_back
+from main_page import exit_game_text
 
 pygame.init()
 screen = pygame.display.set_mode(WINDOW_SIZE)
@@ -28,17 +27,8 @@ exit_account = delete_account = close_game = None
 login = password = ''
 
 
-def create_confirmation_window(window_title, text):
-    # окно для подтверждения на удаление/выход из аккаунта
-    confirmation_window = pygame_gui.windows.UIConfirmationDialog(rect=pygame.Rect((250, 200), (300, 200)),
-                                                                  manager=MANAGER,
-                                                                  window_title=window_title,
-                                                                  action_long_desc=text)
-    return confirmation_window
-
-
 def change_btn(text, editable, cancel_btn_visitable):
-    '''меняет параметры виджетов'''
+    # меняет параметры виджетов
     change_data_button.set_text(text)
     name_entry.is_enabled = editable
     password_entry.is_enabled = editable
@@ -59,16 +49,16 @@ def change_personal_data(old_login, old_password, new_login, new_password):
         password_entry.set_text(old_password)
         if not check_login(new_login):
             error = 'Имя не может быть пустым' if not new_login else 'Имя не может состоять только из пробелов'
-            create_confirmation_window('Ошибка имени!', error)
+            create_confirmation_window('Ошибка имени!', error, MANAGER)
             return
         if password_exists:
-            create_confirmation_window('Ошибка пароля!', 'Такой пароль уже существует - придумайте другой')
+            create_confirmation_window('Ошибка пароля!', 'Такой пароль уже существует - придумайте другой', MANAGER)
             return
         if not check_password(new_password):
             password_rules = {"Длина не может быть меньше 8": len(password) < 8, "Добавьте букву": password.isdigit(),
                               "Добавьте цифру": not bool(i for i in password if i.isdigit())}
             error = [key for key in password_rules if password_rules[key]][0]
-            create_confirmation_window('Ошибка пароля!', error)
+            create_confirmation_window('Ошибка пароля!', error, MANAGER)
             return
         return
 
@@ -79,18 +69,20 @@ def main(user_id):
     screen.blit(maze_image, (0, 0))
     pygame.display.set_caption('Личный кабинет')
     time_delta = CLOCK.tick(60) / 1000.0
-    login, password = cursor.execute('''SELECT name, password FROM Person WHERE id = ?''', (USER_ID,)).fetchone()
+    login, password = cursor.execute('SELECT name, password FROM Person WHERE id = ?', (USER_ID,)).fetchone()
+
     name_entry.set_text(login)
     password_entry.set_text(password)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                close_game = create_confirmation_window('Подтвердите действие', 'Вы уверены, что хотите выйти?')
+                close_game = create_confirmation_window('Подтвердите действие', exit_game_text,
+                                                        MANAGER)
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == exit_button:
-                    exit_account = create_confirmation_window('Подтвердите действие', exit_account_txt)
+                    exit_account = create_confirmation_window('Подтвердите действие', exit_account_txt, MANAGER)
                 if event.ui_element == delete_account_button:
-                    delete_account = create_confirmation_window('Подтвердите действие', delete_account_txt)
+                    delete_account = create_confirmation_window('Подтвердите действие', delete_account_txt, MANAGER)
                 if event.ui_element == cancel_button:
                     name_entry.set_text(login)
                     password_entry.set_text(password)
@@ -103,7 +95,7 @@ def main(user_id):
                         new_login, new_password = name_entry.get_text(), password_entry.get_text()
                         if change_personal_data(login, password, new_login, new_password):
                             login, password = new_login, new_password
-                            create_confirmation_window('Информация', 'Данные изменены')
+                            create_confirmation_window('Информация', 'Данные изменены', MANAGER)
                         else:
                             pass
 
@@ -112,14 +104,19 @@ def main(user_id):
                 if event.ui_element == exit_account:
                     go_to_main(0)
                 if event.ui_element == delete_account:
-                    cursor.execute('''DELETE FROM Person WHERE id = ?''', (USER_ID,))
+                    cursor.execute('DELETE FROM Person WHERE id = ?', (USER_ID,))
                     connect.commit()
                     go_to_main(0)
                 if event.ui_element == close_game:
-                    sys.exit()
+                    terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if go_back.check_mouse_pos(pygame.mouse.get_pos()):
+                    from main_page import main as go_to_main
+                    go_to_main(USER_ID)
 
             MANAGER.process_events(event)
         screen.blit(maze_image, (0, 0))
+        go_back.update()
         MANAGER.update(time_delta)
         MANAGER.draw_ui(screen)
         pygame.display.update()
