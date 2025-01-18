@@ -51,23 +51,68 @@ def check_conflict_with_wall(pos):
     # Проверка столкновения со стеной
 
 
+FPS = 80
+
+
 class Creature(pygame.sprite.Sprite):
     def __init__(self, type, pic_name, pos, *group):
         super().__init__(*group)
-        self.image = load_image(pic_name, -1)
-        print(pic_name)
+        self.image = pygame.image.load('data\\' + pic_name.replace('/', "\\") + '_walk_right.png')
+        SPRITE_WIDTH, SPRITE_HEIGHT = 30, self.image.get_height()
         self.pic_name = pic_name
         self.health = type
         self.speed = 2
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = pos
         self.is_alive = True
-        self.animation = []  # список с картинками для анимации
-        # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо. Creature будет
-        # наследником pygame.sprite.Sprite, чтобы было удобнее передвигаться и ставить картинки
-        self.frame = 0  # текущий кадр
-        self.last_update = pygame.time.get_ticks()
-        self.frame_rate = 80  # как быстро кадры меняются
+
+        self.rect = self.image.get_rect()
+        self.pos = self.rect.x, self.rect.y = pos
+        walk_up = load_image(pic_name + '_walk_up.png', -1)
+        walk_down = load_image(pic_name + '_walk_down.png', -1)
+
+        self.walk_right = [self.image.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in
+                           range(2)]
+        self.walk_left = [pygame.transform.flip(i, True, False) for i in self.walk_right]
+        self.walk_up = [walk_up.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in range(2)]
+        self.walk_down = [walk_down.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in range(2)]
+        self.animation = self.walk_right
+        # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
+        self.current_frame = 0
+        self.frame_rate = 5  # Скорость смены кадров
+        self.animation_timer = 0
+        self.moving = False
+
+    def update(self):
+        self.moving = False
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            self.move('left')
+            self.animation = self.walk_left
+            self.moving = True
+        elif keys[pygame.K_d]:
+            self.move('right')
+            self.animation = self.walk_right
+            self.moving = True
+        elif keys[pygame.K_w]:
+            self.move('up')
+            self.animation = self.walk_up
+            self.moving = True
+        elif keys[pygame.K_s]:
+            self.move('down')
+            self.animation = self.walk_down
+            self.moving = True
+        else:
+
+            self.current_frame = 0  # Если персонаж не двигается, остановить анимацию
+
+    def update_animation(self):
+        if self.moving:
+            self.animation_timer += 1
+            if self.animation_timer >= self.frame_rate:
+                self.current_frame = (self.current_frame + 1) % len(self.animation)
+                self.animation_timer = 0
+
+    def draw(self, screen):
+        screen.blit(self.animation[self.current_frame], self.pos)
 
     def do_die(self):
         self.is_alive = False
@@ -89,38 +134,7 @@ class Creature(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         elif direction == 'right':
             self.rect.x += self.speed
-
-    def update(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_w]:
-            if self.do_animation('up'):
-                self.move('up')
-        elif key[pygame.K_s]:
-            if self.do_animation('down'):
-                self.move('down')
-        elif key[pygame.K_d]:
-            if self.do_animation('right'):
-                self.move('right')
-        elif key[pygame.K_a]:
-            if self.do_animation('left'):
-                self.move('left')
-
-    def do_animation(self, direction):
-        now = pygame.time.get_ticks()
-        directory = self.pic_name.split("/")[0]
-        if direction == 'left':
-            self.animation = [pygame.transform.flip(load_image(f'{directory}/go_right/img_{i}.png'), True, False)
-                              for i in range(1, 5)]
-        else:
-            self.animation = [load_image(f'{directory}/go_{direction}/img_{i}.png') for i in range(1, 5)]
-        if now - self.last_update > self.frame_rate:
-            self.last_update = now
-            self.frame += 1
-            if self.frame == len(self.animation):
-                self.frame = 0
-            self.image = self.animation[self.frame]
-            return True
-        return
+        self.pos = (self.rect.x, self.rect.y)
 
     # Собственно, движение
 
@@ -252,3 +266,21 @@ class Weapon(pygame.sprite.Sprite):
     def check_hit_wall(self):
         pass
     # Пока не удаляю, но эта функция не нужна ее заменяет check_conflict_whith_wall
+
+
+pygame.init()
+screen = pygame.display.set_mode((900, 600))
+cherries_group = pygame.sprite.Group()
+player = Creature(1, 'monsters/monster2/monster2', (450, 300), cherries_group)
+running = True
+clock = pygame.time.Clock()
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    screen.fill((0, 0, 0))
+    player.update()
+    player.update_animation()
+    player.draw(screen)
+    clock.tick(FPS)
+    pygame.display.flip()

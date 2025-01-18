@@ -32,7 +32,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 enemy_type = 2
             else:
                 enemy_type = 3
-            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}.png', (
+            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/moster{enemy_type}_walk_right.png', (
                 random.randint(0, window_size[0] // cell_size) * cell_size,
                 random.randint(0, window_size[1] // cell_size) * cell_size), monster_group)
             monsters.append(enemy)
@@ -50,14 +50,14 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             weapons.append(weapon)
 
         while in_game:
-            for monster in monsters:
-                monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
-                player_pos = player.get_coords((player.rect.x, player.rect.y))
-                if monster.check_can_attack(monster_pos, player_pos):
-                    monster.do_attack()
-                else:
-                    monster.get_path()
-                    monster.update()
+            # for monster in monsters:
+            #     monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
+            #     player_pos = player.get_coords((player.rect.x, player.rect.y))
+            #     if monster.check_can_attack(monster_pos, player_pos):
+            #         monster.do_attack()
+            #     else:
+            #         monster.get_path()
+            #         monster.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     in_game = False
@@ -85,7 +85,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                             enemy_type = 2
                         else:
                             enemy_type = 3
-                        enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}.png',
+                        enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}',
                                               (random.randint(0, window_size[0] // cell_size) * cell_size,
                                                random.randint(0, window_size[1] // cell_size) * cell_size),
                                               monster_group)
@@ -112,4 +112,4 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 in_game = False
 
 
-start_game((957, 600), 50, 1, 'players/ninja_player.png')
+start_game((957, 600), 50, 1, 'players/ninja_player')
