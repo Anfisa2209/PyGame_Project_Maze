@@ -55,6 +55,7 @@ class Creature(pygame.sprite.Sprite):
     def __init__(self, type, pic_name, pos, *group):
         super().__init__(*group)
         self.image = load_image(pic_name, -1)
+        print(pic_name)
         self.pic_name = pic_name
         self.health = type
         self.speed = 2

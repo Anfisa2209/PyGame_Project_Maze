@@ -1,5 +1,6 @@
 import random
 import pygame
+from classes import load_image
 
 BLUE = [20, 108, 121]
 BLACK = [39, 47, 48]
@@ -172,10 +173,9 @@ class MazeGenerator:
     def draw(self):
         if not self.is_full:
             self.draw_cells()
-            self.screen.fill(BLACK)
-            font = pygame.font.Font(None, 200)
-            text = font.render('Loading...', True, (255, 255, 255))
-            self.screen.blit(text, (200, 200))
+            loading = pygame.transform.scale(load_image('loading.png'), self.size)
+            loading.set_alpha(70)
+            self.screen.blit(loading, (0, 0))
             self.update()
         else:
             self.screen.fill(BLACK)
