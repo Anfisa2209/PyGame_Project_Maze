@@ -52,6 +52,7 @@ def check_conflict_with_wall(pos):
 
 
 FPS = 80
+ENEMY_EVENT_TYPE = 30
 
 
 class Creature(pygame.sprite.Sprite):
@@ -141,9 +142,9 @@ class Creature(pygame.sprite.Sprite):
     def get_coords(self, pos_event):
         f = open('for_get_coords.csv', 'r')
         copy_f = f.readlines()
-        column = len(copy_f) - 1
-        row = copy_f[0].count('0')
-        board = [[0 for i in range(row)] for j in range(column)]
+        self.column = len(copy_f) - 1
+        self.row = copy_f[0].count('0')
+        board = [[0 for i in range(self.row)] for j in range(self.column)]
         width = int(copy_f[-1])
         left, top = 0, 0  # Отступы если вдруг основное поле не будет вплотную прилегать к окну
         if (pos_event[0] in range(left, width * len(board[0]) + left) and pos_event[1]
@@ -151,13 +152,47 @@ class Creature(pygame.sprite.Sprite):
             return (pos_event[0] - left) // width, (pos_event[1] - left) // width
         # Получение координат клетки на котором находится существо, pos которого мы получили
 
+    def is_free(self, start_cell, finish_cell, direction):
+        pass
+    # Проверяет есть ли между клетками стены
+
 
 class Enemy(Creature):
-
-    def get_path(self):
-        pass
+    def get_path(self, start, finish):
+        self.delay = 100
+        pygame.time.set_timer(ENEMY_EVENT_TYPE, self.delay)
+        INF = 99999
+        x, y = start
+        distance = [[INF] * self.row for _ in range(self.column)]
+        distance[y][x] = 0
+        prev = [[None] * self.row for _ in range(self.column)]
+        queue = [(x, y)]
+        while queue:
+            x, y = queue.pop(0)
+            for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
+                next_x, next_y = x + dx, y + dy
+                if 0 <= next_x < self.row and 0 < next_y < self.column:
+                    if self.is_free((x, y), (next_x, next_y), (dx, dy)) and distance[next_y][next_x] == INF:
+                        distance[next_y][next_x] = distance[y][x] + 1
+                        prev[next_y][next_x] = (x, y)
+                        queue.append((next_x, next_y))
+        x, y = finish
+        if distance[y][x] == INF or start == finish:
+            return 0 # Идти никуда не надо, либо невозможно либо уже дошли
+        while prev[y][x] != start:
+            x, y = prev[y][x]
+        return x, y
         # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в
         # переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+
+    def move_enemy(self, pos_enemy, pos_hero):
+        next_position = self.get_path(pos_enemy, pos_hero)
+        self.set_position(next_position)
+        print(next_position)
+
+    def set_position(self, next_pos):
+        pass
+    # Меняет координаты врага
 
     def check_can_attack(self, pos_enemy, pos_hero):
         f = open('for_get_coords.csv', 'r')
