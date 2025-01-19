@@ -96,6 +96,8 @@ class MazeGenerator:
         self.screen = pygame.display.set_mode(list(map(sum, zip(size, [2, 2]))))
         self.is_full = False
         self.walls = []
+        self.coords = []
+        self.iterations = 0
         self.flag_wall_ready = True
 
     def setup(self):
@@ -136,6 +138,7 @@ class MazeGenerator:
             b.walls[order_y[1]].exists = False
 
     def draw_cells(self):
+        self.iterations += 1
         for cell in self.grid:
             if cell.visited:
                 rect = pygame.Rect(
@@ -144,6 +147,8 @@ class MazeGenerator:
                 )
                 color = GREEN if cell == self.curr_c else BLUE
                 pygame.draw.rect(self.screen, color, rect)
+                if color == GREEN:
+                    self.coords = rect
 
             for wall in cell.walls.values():
                 if wall.exists:
@@ -166,8 +171,7 @@ class MazeGenerator:
 
         elif len(self.stack) != 0:
             self.curr_c = self.stack.pop(-1)
-
-        if len(self.stack) == 0:
+        if self.coords == [0, 0, self.grid.scale, self.grid.scale] and self.iterations not in [0, 1]:
             self.is_full = True
 
     def draw(self):
