@@ -64,7 +64,8 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             weapons.append(weapon)
 
         while in_game:
-            monsters[0].get_path((0, 0), (10, 5))
+            monsters[0].update(screen)
+            # monsters[0].get_path((0, 0), (10, 5))
             # for monster in monsters:
             #     monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
             #     player_pos = player.get_coords((player.rect.x, player.rect.y))
@@ -91,41 +92,41 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                     elif event.key == pygame.K_SPACE:
                         pass
                         # Тут пауза
-                if event.type == WAVE:
-                    for _ in range(3 * difficulty):
-                        enemy_type = random.randint(0, 10)
-                        if enemy_type <= 7:
-                            enemy_type = 1
-                        elif enemy_type <= 9:
-                            enemy_type = 2
-                        else:
-                            enemy_type = 3
-                        enemy = classes.Enemy(enemy_type,
-                                              f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png',
-                                              (random.randint(0, window_size[0] // cell_size) * cell_size,
-                                               random.randint(0, window_size[1] // cell_size) * cell_size),
-                                              monster_group)
-                        monsters.append(enemy)
-                    for _ in range(difficulty * 3):
-                        cherry = classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
-                                                 random.randint(0, window_size[1] // cell_size) * cell_size),
-                                                cherries_group)
-                        cherries.append(cherry)
-                    for _ in range(difficulty * 10):
-                        weapon_type = random.randint(0, 10)
-                        if weapon_type <= 5:
-                            weapon_type = 1
-                        elif weapon_type <= 8:
-                            weapon_type = 2
-                        else:
-                            weapon_type = 3
-                        weapon = classes.Weapon(weapon_type, f'weapons/weapon{weapon_type}.png', (
-                            random.randint(0, window_size[0] // cell_size) * cell_size,
-                            random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
-                        weapons.append(weapon)
-                if event.type == ENEMY_EVENT_TYPE:
-                    for monster in monsters:
-                        monster.move_enemy((0, 0), player.pos)
+                # if event.type == WAVE:
+                #     for _ in range(3 * difficulty):
+                #         enemy_type = random.randint(0, 10)
+                #         if enemy_type <= 7:
+                #             enemy_type = 1
+                #         elif enemy_type <= 9:
+                #             enemy_type = 2
+                #         else:
+                #             enemy_type = 3
+                #         enemy = classes.Enemy(enemy_type,
+                #                               f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png',
+                #                               (random.randint(0, window_size[0] // cell_size) * cell_size,
+                #                                random.randint(0, window_size[1] // cell_size) * cell_size),
+                #                               monster_group)
+                #         monsters.append(enemy)
+                #     for _ in range(difficulty * 3):
+                #         cherry = classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
+                #                                  random.randint(0, window_size[1] // cell_size) * cell_size),
+                #                                 cherries_group)
+                #         cherries.append(cherry)
+                #     for _ in range(difficulty * 10):
+                #         weapon_type = random.randint(0, 10)
+                #         if weapon_type <= 5:
+                #             weapon_type = 1
+                #         elif weapon_type <= 8:
+                #             weapon_type = 2
+                #         else:
+                #             weapon_type = 3
+                #         weapon = classes.Weapon(weapon_type, f'weapons/weapon{weapon_type}.png', (
+                #             random.randint(0, window_size[0] // cell_size) * cell_size,
+                #             random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
+                #         weapons.append(weapon)
+                # if event.type == ENEMY_EVENT_TYPE:
+                #     for monster in monsters:
+                #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
             player.update()
             player.update_animation()

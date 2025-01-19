@@ -91,28 +91,6 @@ class Creature(pygame.sprite.Sprite):
 
         self.enemy_way = []
 
-    def update(self):
-        self.moving = False
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
-            self.move('left')
-            self.animation = self.walk_left
-            self.moving = True
-        elif keys[pygame.K_d]:
-            self.move('right')
-            self.animation = self.walk_right
-            self.moving = True
-        elif keys[pygame.K_w]:
-            self.move('up')
-            self.animation = self.walk_up
-            self.moving = True
-        elif keys[pygame.K_s]:
-            self.move('down')
-            self.animation = self.walk_down
-            self.moving = True
-        else:
-
-            self.current_frame = 0  # Если персонаж не двигается, остановить анимацию
 
     def update_animation(self):
         if self.moving:
@@ -193,6 +171,8 @@ class Enemy(Creature):
         return x, y
         # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в
         # переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+    def update(self, screen):
+        screen.blit(self.animation[self.current_frame], (0,0))
 
     def move_enemy(self, pos_enemy, pos_hero):
         next_position = self.get_path(pos_enemy, pos_hero)
@@ -229,7 +209,6 @@ class Enemy(Creature):
     # Атака
 
 
-
 class Player(Creature):
     def __init__(self, type=0, pic_name='', pos=(), *group):
         super().__init__(type, pic_name, pos, *group)
@@ -255,6 +234,28 @@ class Player(Creature):
         self.attacking_weapons.append(Weapon(flying=True, type=self.current_weapon, direction=self.direction))
 
     # Атака
+    def update(self):
+        self.moving = False
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            self.move('left')
+            self.animation = self.walk_left
+            self.moving = True
+        elif keys[pygame.K_d]:
+            self.move('right')
+            self.animation = self.walk_right
+            self.moving = True
+        elif keys[pygame.K_w]:
+            self.move('up')
+            self.animation = self.walk_up
+            self.moving = True
+        elif keys[pygame.K_s]:
+            self.move('down')
+            self.animation = self.walk_down
+            self.moving = True
+        else:
+
+            self.current_frame = 0  # Если персонаж не двигается, остановить анимацию
 
     def take_weapon(self):
         # Берём оружие
