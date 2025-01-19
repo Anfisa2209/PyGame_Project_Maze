@@ -54,7 +54,6 @@ def check_conflict_with_wall(pos):
 FPS = 80
 
 
-
 class Creature(pygame.sprite.Sprite):
     def __init__(self, type, pic_name, pos, *group):
         super().__init__(*group)
@@ -91,7 +90,6 @@ class Creature(pygame.sprite.Sprite):
 
         self.enemy_way = []
 
-
     def update_animation(self):
         if self.moving:
             self.animation_timer += 1
@@ -116,11 +114,15 @@ class Creature(pygame.sprite.Sprite):
     def move(self, direction):
         if direction == 'up':
             self.rect.y -= self.speed
+            self.animation = self.walk_up
         elif direction == 'down':
             self.rect.y += self.speed
+            self.animation = self.walk_down
         if direction == 'left':
             self.rect.x -= self.speed
+            self.animation = self.walk_left
         elif direction == 'right':
+            self.animation = self.walk_right
             self.rect.x += self.speed
         self.pos = (self.rect.x, self.rect.y)
 
@@ -150,8 +152,12 @@ class Enemy(Creature):
     def get_path(self, start, finish):
         INF = 99999
         x, y = start
+        print(start)
         distance = [[INF] * self.row for _ in range(self.column)]
-        distance[y][x] = 0
+        try:
+            distance[y][x] = 0
+        except IndexError:
+            print(x, y, 'IndexError')
         prev = [[None] * self.row for _ in range(self.column)]
         queue = [(x, y)]
         while queue:
@@ -173,12 +179,21 @@ class Enemy(Creature):
         # переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
 
     def update(self, screen):
-        screen.blit(self.animation[self.current_frame], (10, 20))
+        screen.blit(self.animation[self.current_frame], self.pos)
 
     def move_enemy(self, pos_enemy, pos_hero):
-        next_position = self.get_path(pos_enemy, pos_hero)
-        self.set_position(next_position)
-        print(next_position)
+        self.diraction = 'right'
+        next_x, next_y = self.get_path(pos_enemy, pos_hero)
+        print(next_x, next_y, 'next')
+        if self.pos[0] < next_x:
+            self.diraction = 'right'
+        if self.pos[0] > next_x:
+            self.diraction = 'left'
+        if self.pos[1] < next_y:
+            self.diraction = 'down'
+        if self.pos[1] > next_y:
+            self.diraction = 'up'
+        self.move(self.diraction)
 
     def set_position(self, next_pos):
         pass

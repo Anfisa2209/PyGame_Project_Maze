@@ -11,7 +11,7 @@ ENEMY_EVENT_TYPE = 30
 def start_game(window_size, cell_size, difficulty, player_pic_name):
     pygame.init()
     clock = pygame.time.Clock()
-    fps = 500
+    fps = 80
     screen = pygame.display.set_mode(window_size)
     generator = MazeGenerator(window_size, cell_size)
     generator.main_loop()
@@ -19,7 +19,6 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
     pygame.time.set_timer(ENEMY_EVENT_TYPE, delay)
 
     if generator.is_full:
-
         pygame.image.save(screen, 'data/maze.png')
         maze_fon = classes.load_image('maze.png')
         screen.blit(maze_fon, (0, 0))
@@ -127,6 +126,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
             monsters[0].update(screen)
+            monsters[0].move_enemy(monsters[0].pos, player.get_coords(player.pos))
             player.update()
             player.update_animation()
             player.draw(screen)
