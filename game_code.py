@@ -46,9 +46,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 enemy_type = 2
             else:
                 enemy_type = 3
-            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png', (
-                random.randint(0, window_size[0] // cell_size) * cell_size,
-                random.randint(0, window_size[1] // cell_size) * cell_size), monster_group)
+            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png', (0, 0), monster_group)
             monsters.append(enemy)
         for _ in range(difficulty * 10):  # создание оружия
             weapon_type = random.randint(0, 10)
@@ -64,7 +62,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             weapons.append(weapon)
 
         while in_game:
-            monsters[0].update(screen)
+
             # monsters[0].get_path((0, 0), (10, 5))
             # for monster in monsters:
             #     monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
@@ -128,6 +126,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 #     for monster in monsters:
                 #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
+            monsters[0].update(screen)
             player.update()
             player.update_animation()
             player.draw(screen)

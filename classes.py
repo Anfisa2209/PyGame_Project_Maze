@@ -171,8 +171,9 @@ class Enemy(Creature):
         return x, y
         # Здесь волновым алгоритмом определяем, как легче пройти к игроку и разворачиваемся в ту сторону и записываем в
         # переменную direction. 'up', 'down', 'left', 'right' - наброски, их можно менять
+
     def update(self, screen):
-        screen.blit(self.animation[self.current_frame], (0,0))
+        screen.blit(self.animation[self.current_frame], (10, 20))
 
     def move_enemy(self, pos_enemy, pos_hero):
         next_position = self.get_path(pos_enemy, pos_hero)
