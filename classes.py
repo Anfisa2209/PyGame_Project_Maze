@@ -58,7 +58,7 @@ ENEMY_EVENT_TYPE = 30
 class Creature(pygame.sprite.Sprite):
     def __init__(self, type, pic_name, pos, *group):
         super().__init__(*group)
-        self.image = pygame.image.load('data\\' + pic_name.replace('/', "\\") + '_walk_right.png')
+        self.image = load_image(pic_name, -1)
         SPRITE_WIDTH, SPRITE_HEIGHT = 30, self.image.get_height()
         self.pic_name = pic_name
         self.health = type
@@ -67,18 +67,17 @@ class Creature(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.pos = self.rect.x, self.rect.y = pos
-        walk_up = load_image(pic_name + '_walk_up.png', -1)
-        walk_down = load_image(pic_name + '_walk_down.png', -1)
+        walk_up = load_image(pic_name.replace('_walk_right', '_walk_up'), -1)
+        walk_down = load_image(pic_name.replace('_walk_right', "_walk_down"), -1)
 
-        self.walk_right = [self.image.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in
-                           range(2)]
+        self.walk_right = [self.image.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in range(2)]
         self.walk_left = [pygame.transform.flip(i, True, False) for i in self.walk_right]
-        self.walk_up = [walk_up.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in range(2)]
-        self.walk_down = [walk_down.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT)) for i in range(2)]
-        self.animation = self.walk_right
+        self.walk_up = [walk_up.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, walk_up.height)) for i in range(2)]
+        self.walk_down = [walk_down.subsurface((i * SPRITE_WIDTH, 0, SPRITE_WIDTH, walk_down.height)) for i in range(2)]
+        self.animation = self.walk_left
         # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
         self.current_frame = 0
-        self.frame_rate = 5  # Скорость смены кадров
+        self.frame_rate = 10  # Скорость смены кадров
         self.animation_timer = 0
         self.moving = False
 
@@ -301,21 +300,3 @@ class Weapon(pygame.sprite.Sprite):
     def check_hit_wall(self):
         pass
     # Пока не удаляю, но эта функция не нужна ее заменяет check_conflict_whith_wall
-
-
-pygame.init()
-screen = pygame.display.set_mode((900, 600))
-cherries_group = pygame.sprite.Group()
-player = Creature(1, 'monsters/monster2/monster2', (450, 300), cherries_group)
-running = True
-clock = pygame.time.Clock()
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    screen.fill((0, 0, 0))
-    player.update()
-    player.update_animation()
-    player.draw(screen)
-    clock.tick(FPS)
-    pygame.display.flip()

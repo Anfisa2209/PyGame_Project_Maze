@@ -8,12 +8,18 @@ WAVE = pygame.USEREVENT + 1
 
 
 def start_game(window_size, cell_size, difficulty, player_pic_name):
+    pygame.init()
+    clock = pygame.time.Clock()
+    fps = 60
+    screen = pygame.display.set_mode(window_size)
     generator = MazeGenerator(window_size, cell_size)
     generator.main_loop()
-    player = classes.Player(type=1, pic_name=player_pic_name,
-                            pos=(((window_size[0] // cell_size) - 1) * cell_size,
-                                 ((window_size[1] // cell_size) - 1) * cell_size))
+
     if generator.is_full:
+
+        pygame.image.save(screen, 'data/maze.png')
+        maze_fon = classes.load_image('maze.png')
+        screen.blit(maze_fon, (0, 0))
         pygame.time.set_timer(WAVE, 10)
         in_game = True
         monsters = []
@@ -24,6 +30,11 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
         cherries = [classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
                                     random.randint(0, window_size[1] // cell_size) * cell_size), cherries_group)
                     for _ in range(3 * difficulty)]
+
+        player = classes.Player(type=1, pic_name=player_pic_name,
+                                pos=(window_size[0] - cell_size, window_size[1] - cell_size))
+        if difficulty == 3:
+            player.image = pygame.transform.scale(player.image, (player.image.width, player.image.height - 4))
         for _ in range(3 * difficulty):  # создание врагов
             enemy_type = random.randint(0, 10)
             if enemy_type <= 7:
@@ -32,7 +43,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 enemy_type = 2
             else:
                 enemy_type = 3
-            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/moster{enemy_type}_walk_right.png', (
+            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png', (
                 random.randint(0, window_size[0] // cell_size) * cell_size,
                 random.randint(0, window_size[1] // cell_size) * cell_size), monster_group)
             monsters.append(enemy)
@@ -68,11 +79,11 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                             cherry.get_taken()
                             cherries_group.remove(cherry)
                             cherries.remove(cherry)
-                        weapon = pygame.sprite.spritecollide(player, weapons_group, False)
-                    elif weapon:
-                        weapon.get_taken()
-                        weapons_group.remove(weapon)
-                        weapon.remove(weapon)
+                        # weapon = pygame.sprite.spritecollide(player, weapons_group, False)
+                    # elif weapon:
+                    #     weapon.get_taken()
+                    #     weapons_group.remove(weapon)
+                    #     weapon.remove(weapon)
                     elif event.key == pygame.K_SPACE:
                         pass
                         # Тут пауза
@@ -85,7 +96,8 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                             enemy_type = 2
                         else:
                             enemy_type = 3
-                        enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}',
+                        enemy = classes.Enemy(enemy_type,
+                                              f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png',
                                               (random.randint(0, window_size[0] // cell_size) * cell_size,
                                                random.randint(0, window_size[1] // cell_size) * cell_size),
                                               monster_group)
@@ -107,9 +119,15 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                             random.randint(0, window_size[0] // cell_size) * cell_size,
                             random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
                         weapons.append(weapon)
+            screen.blit(maze_fon, (0, 0))
             player.update()
+            player.update_animation()
+            player.draw(screen)
             if player.health == 0:
                 in_game = False
+            clock.tick(fps)
+            pygame.display.flip()
 
 
-start_game((957, 600), 50, 1, 'players/ninja_player')
+start_game((957, 600), 50, 1, 'players/black_player/black_player_walk_right.png')
+# Называем по принципу - monsters/monster2/monster2_walk_right.png
