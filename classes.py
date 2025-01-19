@@ -52,7 +52,7 @@ def check_conflict_with_wall(pos):
 
 
 FPS = 80
-ENEMY_EVENT_TYPE = 30
+
 
 
 class Creature(pygame.sprite.Sprite):
@@ -80,6 +80,16 @@ class Creature(pygame.sprite.Sprite):
         self.frame_rate = 10  # Скорость смены кадров
         self.animation_timer = 0
         self.moving = False
+
+        f = open('for_get_coords.csv', 'r')
+        copy_f = f.readlines()
+        self.column = len(copy_f) - 1
+        self.row = copy_f[0].count('0')
+        self.board = [[0 for _ in range(self.row)] for _ in range(self.column)]
+        self.width = int(copy_f[-1])
+        f.close()
+
+        self.enemy_way = []
 
     def update(self):
         self.moving = False
@@ -139,27 +149,27 @@ class Creature(pygame.sprite.Sprite):
     # Собственно, движение
 
     def get_coords(self, pos_event):
-        f = open('for_get_coords.csv', 'r')
-        copy_f = f.readlines()
-        self.column = len(copy_f) - 1
-        self.row = copy_f[0].count('0')
-        board = [[0 for i in range(self.row)] for j in range(self.column)]
-        width = int(copy_f[-1])
         left, top = 0, 0  # Отступы если вдруг основное поле не будет вплотную прилегать к окну
-        if (pos_event[0] in range(left, width * len(board[0]) + left) and pos_event[1]
-                in range(top, width * len(board) + top)):
-            return (pos_event[0] - left) // width, (pos_event[1] - left) // width
+        if (pos_event[0] in range(left, self.width * len(self.board[0]) + left) and pos_event[1]
+                in range(top, self.width * len(self.board) + top)):
+            return (pos_event[0] - left) // self.width, (pos_event[1] - left) // self.width
         # Получение координат клетки на котором находится существо, pos которого мы получили
 
-    def is_free(self, start_cell, finish_cell, direction):
-        pass
+    def is_free(self, start_cell, finish_cell):
+        x_start, y_start = start_cell
+        x_finish, y_finish = finish_cell
+        result = False
+        if x_finish == x_start:
+            result = check_conflict_with_wall((x_finish + 2, max(y_finish, y_start)))
+        elif y_start == y_finish:
+            result = check_conflict_with_wall((max(x_finish, x_start), y_start + 2))
+        return True if not result else False
+
     # Проверяет есть ли между клетками стены
 
 
 class Enemy(Creature):
     def get_path(self, start, finish):
-        self.delay = 100
-        pygame.time.set_timer(ENEMY_EVENT_TYPE, self.delay)
         INF = 99999
         x, y = start
         distance = [[INF] * self.row for _ in range(self.column)]
@@ -171,13 +181,13 @@ class Enemy(Creature):
             for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
                 next_x, next_y = x + dx, y + dy
                 if 0 <= next_x < self.row and 0 < next_y < self.column:
-                    if self.is_free((x, y), (next_x, next_y), (dx, dy)) and distance[next_y][next_x] == INF:
+                    if self.is_free((x, y), (next_x, next_y)) and distance[next_y][next_x] == INF:
                         distance[next_y][next_x] = distance[y][x] + 1
                         prev[next_y][next_x] = (x, y)
                         queue.append((next_x, next_y))
         x, y = finish
         if distance[y][x] == INF or start == finish:
-            return 0 # Идти никуда не надо, либо невозможно либо уже дошли
+            return start  # Идти никуда не надо, либо невозможно либо уже дошли
         while prev[y][x] != start:
             x, y = prev[y][x]
         return x, y
@@ -191,6 +201,7 @@ class Enemy(Creature):
 
     def set_position(self, next_pos):
         pass
+
     # Меняет координаты врага
 
     def check_can_attack(self, pos_enemy, pos_hero):
@@ -216,6 +227,7 @@ class Enemy(Creature):
     def do_attack(self):
         pass
     # Атака
+
 
 
 class Player(Creature):

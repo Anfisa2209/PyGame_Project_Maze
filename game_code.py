@@ -5,15 +5,18 @@ import pygame
 from generate_maze import MazeGenerator
 
 WAVE = pygame.USEREVENT + 1
+ENEMY_EVENT_TYPE = 30
 
 
 def start_game(window_size, cell_size, difficulty, player_pic_name):
     pygame.init()
     clock = pygame.time.Clock()
-    fps = 60
+    fps = 500
     screen = pygame.display.set_mode(window_size)
     generator = MazeGenerator(window_size, cell_size)
     generator.main_loop()
+    delay = 100
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, delay)
 
     if generator.is_full:
 
@@ -61,6 +64,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             weapons.append(weapon)
 
         while in_game:
+            monsters[0].get_path((0, 0), (10, 5))
             # for monster in monsters:
             #     monster_pos = monster.get_coords((monster.rect.x, monster.rect.y))
             #     player_pos = player.get_coords((player.rect.x, player.rect.y))
@@ -119,6 +123,9 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                             random.randint(0, window_size[0] // cell_size) * cell_size,
                             random.randint(0, window_size[1] // cell_size) * cell_size), weapons_group)
                         weapons.append(weapon)
+                if event.type == ENEMY_EVENT_TYPE:
+                    for monster in monsters:
+                        monster.move_enemy((0, 0), player.pos)
             screen.blit(maze_fon, (0, 0))
             player.update()
             player.update_animation()

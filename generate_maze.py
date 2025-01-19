@@ -168,10 +168,10 @@ class MazeGenerator:
 
             self.curr_c = next_c
             self.curr_c.visited = True
-
         elif len(self.stack) != 0:
             self.curr_c = self.stack.pop(-1)
         if self.coords == [0, 0, self.grid.scale, self.grid.scale] and self.iterations not in [0, 1]:
+            print('k')
             self.is_full = True
 
     def draw(self):
