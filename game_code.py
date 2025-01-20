@@ -125,8 +125,8 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 #     for monster in monsters:
                 #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
-            monsters[0].update(screen)
-            monsters[0].move_enemy(monsters[0].pos, player.get_coords(player.pos))
+            # monsters[0].update(screen)
+            # monsters[0].move_enemy(monsters[0].pos, player.get_coords(player.pos))
             player.update()
             player.update_animation()
             player.draw(screen)

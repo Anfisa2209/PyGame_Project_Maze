@@ -100,6 +100,7 @@ class MazeGenerator:
         self.iterations = 0
         self.flag_wall_ready = True
 
+
     def setup(self):
         self.grid = Grid(self.size, self.scale)
         self.stack = []
@@ -171,7 +172,6 @@ class MazeGenerator:
         elif len(self.stack) != 0:
             self.curr_c = self.stack.pop(-1)
         if self.coords == [0, 0, self.grid.scale, self.grid.scale] and self.iterations not in [0, 1]:
-            print('k')
             self.is_full = True
 
     def draw(self):
@@ -194,7 +194,7 @@ class MazeGenerator:
                 self.flag_wall_ready = False
 
     def main_loop(self):
-        while not self.is_full:
+        while self.flag_wall_ready:
             self.handle_events()
             self.draw()
             pygame.display.flip()

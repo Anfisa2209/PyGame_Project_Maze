@@ -37,17 +37,19 @@ def create_list_wall():
 
 
 def check_conflict_with_wall(pos):
-    x, y = pos
     walls = create_list_wall()
-    result = []
     for i in walls:
+        x, y = pos
         start_x, start_y = i[0]
         end_x, end_y = i[1]
-        if y == start_y == end_y and x in range(min(start_x, end_x), max(start_x, end_x) + 1):
-            result.append(i)
-        if x == start_x == end_x and y in range(min(start_y, end_y), max(start_y, end_y) + 1):
-            result.append(i)
-    return True if result else False
+        for j, k in (x, y), (x + 10, y + 27), (x + 30, y), (x + 10, y), (x + 30, y + 10), (x, y + 13), (x + 30, y + 27):
+            if start_y == end_y and start_y in range(k - 2, k) and j in range(min(start_x, end_x),
+                                                                              max(start_x, end_x) + 1):
+                return True
+            elif start_x == end_x and start_x in range(j - 2, j) and k in range(min(start_y, end_y),
+                                                                                max(start_y, end_y) + 1):
+                return True
+    return False
     # Проверка столкновения со стеной
 
 
@@ -112,18 +114,23 @@ class Creature(pygame.sprite.Sprite):
         # Получение урона, если хп меньше либо равно нулю, то смерть
 
     def move(self, direction):
+        print(self.rect.left, self.rect.right, self.rect.top, self.rect.bottom, self.pos)
         if direction == 'up':
-            self.rect.y -= self.speed
-            self.animation = self.walk_up
+            if not check_conflict_with_wall((self.rect.x, self.rect.y - self.speed)):
+                self.rect.y -= self.speed
+                self.animation = self.walk_up
         elif direction == 'down':
-            self.rect.y += self.speed
-            self.animation = self.walk_down
+            if not check_conflict_with_wall((self.rect.x, self.rect.y + self.speed)):
+                self.rect.y += self.speed
+                self.animation = self.walk_down
         if direction == 'left':
-            self.rect.x -= self.speed
-            self.animation = self.walk_left
+            if not check_conflict_with_wall((self.rect.x - self.speed, self.rect.y)):
+                self.rect.x -= self.speed
+                self.animation = self.walk_left
         elif direction == 'right':
-            self.animation = self.walk_right
-            self.rect.x += self.speed
+            if not check_conflict_with_wall((self.rect.x + self.speed, self.rect.y)):
+                self.animation = self.walk_right
+                self.rect.x += self.speed
         self.pos = (self.rect.x, self.rect.y)
 
     # Собственно, движение
@@ -152,7 +159,6 @@ class Enemy(Creature):
     def get_path(self, start, finish):
         INF = 99999
         x, y = start
-        print(start)
         distance = [[INF] * self.row for _ in range(self.column)]
         try:
             distance[y][x] = 0
@@ -164,11 +170,12 @@ class Enemy(Creature):
             x, y = queue.pop(0)
             for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
                 next_x, next_y = x + dx, y + dy
-                if 0 <= next_x < self.row and 0 < next_y < self.column:
-                    if self.is_free((x, y), (next_x, next_y)) and distance[next_y][next_x] == INF:
-                        distance[next_y][next_x] = distance[y][x] + 1
-                        prev[next_y][next_x] = (x, y)
-                        queue.append((next_x, next_y))
+                if next_x <= self.row and next_y <= self.column:
+                    if 0 <= next_x < self.row and 0 < next_y < self.column and 0 <= x < self.row and 0 < y < self.column:
+                        if self.is_free((x, y), (next_x, next_y)) and distance[next_y][next_x] == INF:
+                            distance[next_y][next_x] = distance[y][x] + 1
+                            prev[next_y][next_x] = (x, y)
+                            queue.append((next_x, next_y))
         x, y = finish
         if distance[y][x] == INF or start == finish:
             return start  # Идти никуда не надо, либо невозможно либо уже дошли
@@ -182,9 +189,8 @@ class Enemy(Creature):
         screen.blit(self.animation[self.current_frame], self.pos)
 
     def move_enemy(self, pos_enemy, pos_hero):
-        self.diraction = 'right'
+        self.diraction = ''
         next_x, next_y = self.get_path(pos_enemy, pos_hero)
-        print(next_x, next_y, 'next')
         if self.pos[0] < next_x:
             self.diraction = 'right'
         if self.pos[0] > next_x:
