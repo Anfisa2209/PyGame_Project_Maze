@@ -12,6 +12,12 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
     pygame.init()
     clock = pygame.time.Clock()
     fps = 80
+    if difficulty == 3:
+        # 35
+        window_size = 910, 595
+    elif difficulty == 2:
+        # 40 cell size
+        window_size = 920, 600
     screen = pygame.display.set_mode(window_size)
     generator = MazeGenerator(window_size, cell_size)
     generator.main_loop()
@@ -35,8 +41,6 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
 
         player = classes.Player(type=1, pic_name=player_pic_name,
                                 pos=(window_size[0] - cell_size, window_size[1] - cell_size))
-        if difficulty == 3:
-            player.image = pygame.transform.scale(player.image, (player.image.width, player.image.height - 4))
         for _ in range(3 * difficulty):  # создание врагов
             enemy_type = random.randint(0, 10)
             if enemy_type <= 7:
@@ -45,7 +49,8 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 enemy_type = 2
             else:
                 enemy_type = 3
-            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png', (0, 0), monster_group)
+            enemy = classes.Enemy(enemy_type, f'monsters/monster{enemy_type}/monster{enemy_type}_walk_right.png',
+                                  (0, 0), monster_group)
             monsters.append(enemy)
         for _ in range(difficulty * 10):  # создание оружия
             weapon_type = random.randint(0, 10)
@@ -136,5 +141,6 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             pygame.display.flip()
 
 
-start_game((957, 600), 50, 1, 'players/black_player/black_player_walk_right.png')
+start_game((950, 600), 50, 1, 'players/ninja_player/ninja_player_walk_right.png')
 # Называем по принципу - monsters/monster2/monster2_walk_right.png
+# простой - 50, средний - 40, сложный - 35
