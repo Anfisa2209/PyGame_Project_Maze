@@ -1,5 +1,5 @@
 import classes
-import random
+from random import randrange
 import pygame
 
 import main_page
@@ -37,13 +37,14 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
         weapons = []
         monster_group = pygame.sprite.Group()
         cherries_group = pygame.sprite.Group()
-        weapons_group = pygame.sprite.Group()
-        cherries = [classes.Cherry((random.randint(0, window_size[0] // cell_size) * cell_size,
-                                    random.randint(0, window_size[1] // cell_size) * cell_size), cherries_group)
-                    for _ in range(3 * difficulty)]
+        player_group = pygame.sprite.Group()
+        cherry_image = pygame.transform.scale(classes.load_image('cherry.png', -1), (cell_size, cell_size))
+        cherries = [classes.Cherry(cherry_image,
+                                   (randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)),
+                                   cherries_group) for _ in range(5 * difficulty)]
 
         player = classes.Player(type=1, pic_name=player_pic_name,
-                                pos=(window_size[0] - cell_size, window_size[1] - cell_size))
+                                pos=(window_size[0] - cell_size, window_size[1] - cell_size), *player_group)
 
         while in_game:
             # monsters[0].get_path((0, 0), (10, 5))
@@ -59,18 +60,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 if event.type == pygame.QUIT:
                     in_game = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_e:
-                        cherry = pygame.sprite.spritecollide(player, cherries_group, False)
-                        if cherry:
-                            cherry.get_taken()
-                            cherries_group.remove(cherry)
-                            cherries.remove(cherry)
-                        # weapon = pygame.sprite.spritecollide(player, weapons_group, False)
-                    # elif weapon:
-                    #     weapon.get_taken()
-                    #     weapons_group.remove(weapon)
-                    #     weapon.remove(weapon)
-                    elif event.key == pygame.K_SPACE:
+                    if event.key == pygame.K_SPACE:
                         pass
                         # Тут пауза
                 # if event.type == WAVE:
@@ -109,17 +99,17 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 #     for monster in monsters:
                 #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
-            # monsters[0].update(screen)
-            # monsters[0].move_enemy(monsters[0].pos, player.get_coords(player.pos))
+            for cherry in cherries:
+                cherry.update(player)
+                cherry.draw(screen)
             player.update()
             player.update_animation()
             player.draw(screen)
-            player.health = 0
             if player.health == 0:
                 in_game = False
                 game_ended('Вы проиграли!', window_size, cell_size, difficulty, player_pic_name)
-            # если выиграл:
-            #     game_ended('Вы выиграли!', window_size, cell_size, difficulty, player_pic_name)
+            if player.get_coords(player.pos) == (0, 0) and in_game:
+                game_ended('Вы выиграли!', window_size, cell_size, difficulty, player_pic_name)
             clock.tick(fps)
             pygame.display.flip()
 

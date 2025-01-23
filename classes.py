@@ -297,13 +297,22 @@ class Player(Creature):
 
 
 class Cherry(pygame.sprite.Sprite):
-    def __init__(self, pos, *group):
+    def __init__(self, image, pos, *group):
         super().__init__(*group)
-        self.is_visible = True
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = pos
         self.pos = pos
 
-    def get_taken(self):
-        self.is_visible = 0
+    def draw(self, screen):
+        screen.blit(self.image, self.pos)
+
+    def update(self, player):
+        if player.get_coords(player.pos) == player.get_coords(self.pos):
+            pygame.mixer.music.load('data/music/cherry.mp3')
+            pygame.mixer.music.play()
+            self.pos = (1000, 3000)
+            self.rect.x, self.rect.y = self.pos
 
 
 class Weapon(pygame.sprite.Sprite):
