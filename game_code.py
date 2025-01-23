@@ -33,9 +33,9 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
         screen.blit(maze_fon, (0, 0))
         pygame.time.set_timer(WAVE, 10)
         in_game = True
-        monsters = []
+        spikes = []
         weapons = []
-        monster_group = pygame.sprite.Group()
+        spikes_group = pygame.sprite.Group()
         cherries_group = pygame.sprite.Group()
         player_group = pygame.sprite.Group()
         cherry_image = pygame.transform.scale(classes.load_image('cherry.png', -1), (cell_size, cell_size))
@@ -45,7 +45,10 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
 
         player = classes.Player(type=1, pic_name=player_pic_name,
                                 pos=(window_size[0] - cell_size, window_size[1] - cell_size), *player_group)
-
+        for i in range(difficulty*50):
+            spike = classes.Spikes((randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)), cell_size, spikes_group)
+            spikes.append(spike)
+            #Здесь нужно при появлении сделать проверку на стену слева или справаб иначе ищем новое место
         while in_game:
             # monsters[0].get_path((0, 0), (10, 5))
             # for monster in monsters:

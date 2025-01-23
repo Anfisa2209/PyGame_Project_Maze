@@ -344,3 +344,17 @@ class Weapon(pygame.sprite.Sprite):
     def check_hit_wall(self):
         pass
     # Пока не удаляю, но эта функция не нужна ее заменяет check_conflict_whith_wall
+
+
+class Spikes(pygame.sprite.Sprite):
+    def __init__(self, pos, cell_size, *group):
+        super().__init__(pos, cell_size, *group)
+        self.image = load_image('spikes', -1)
+        self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size)
+        self.is_activated = False
+
+    def activate(self):
+        self.is_activated = True
+        self.rect = self.image.get_rect()
+        pass
+    #Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).
