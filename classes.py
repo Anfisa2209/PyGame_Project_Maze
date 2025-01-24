@@ -353,8 +353,8 @@ class Spikes(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size)
         self.is_activated = False
 
-    def activate(self):
-        self.is_activated = True
+    def do_activate(self):
         self.rect = self.image.get_rect()
+        self.is_activated = True
         pass
     #Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).

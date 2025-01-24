@@ -105,6 +105,12 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             for cherry in cherries:
                 cherry.update(player)
                 cherry.draw(screen)
+            if pygame.sprite.spritecollide(player, spikes_group, False):
+                for spike in pygame.sprite.spritecollide(player, spikes_group, False):
+                    if spike.is_activated:
+                        player.get_hit(1)
+                    else:
+                        spike.do_activate
             player.update()
             player.update_animation()
             player.draw(screen)
