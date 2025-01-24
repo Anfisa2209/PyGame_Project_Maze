@@ -46,9 +46,10 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
         player = classes.Player(type=1, pic_name=player_pic_name,
                                 pos=(window_size[0] - cell_size, window_size[1] - cell_size), *player_group)
         # for i in range(difficulty*50):
-        #     spike = classes.Spikes((randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)), cell_size, spikes_group)
+        #     pos, direction = classes.choose_pos_for_spike()
+        #     spike = classes.Spikes(pos, cell_size, spikes_group, xy=direction)
         #     spikes.append(spike)
-            #Здесь нужно при появлении сделать проверку на стену слева или справаб иначе ищем новое место
+
         while in_game:
             # monsters[0].get_path((0, 0), (10, 5))
             # for monster in monsters:

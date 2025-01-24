@@ -1,7 +1,10 @@
 import os
+import random
 import sys
 
 import pygame
+
+lst_spikes = []
 
 
 def load_image(name, colorkey=None):
@@ -34,6 +37,16 @@ def create_list_wall():
             for_a_while = []
         return walls
     # Создания списка всех стен (координаты начала и конца)
+
+
+def choose_pos_for_spike():
+    walls = create_list_wall()
+    result = walls[random.randint(0, len(walls))]
+    if result not in lst_spikes:
+        lst_spikes.append(result)
+        xy = 'x' if result[0][0] == result[1][0] else 'y'
+        return result[0], xy
+    return choose_pos_for_spike()
 
 
 def check_conflict_with_wall(pos, direction=''):
@@ -362,7 +375,7 @@ class Weapon(pygame.sprite.Sprite):
 
 
 class Spikes(pygame.sprite.Sprite):
-    def __init__(self, pos, cell_size, *group):
+    def __init__(self, pos, cell_size, *group, xy):
         super().__init__(pos, cell_size, *group)
         self.image = load_image('spikes', -1)
         self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size)
@@ -372,4 +385,6 @@ class Spikes(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.is_activated = True
         pass
-    # Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).
+    # Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у
+    # картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1],
+    # cell_size, cell_size).
