@@ -100,7 +100,6 @@ class MazeGenerator:
         self.iterations = 0
         self.flag_wall_ready = True
 
-
     def setup(self):
         self.grid = Grid(self.size, self.scale)
         self.stack = []
@@ -175,14 +174,13 @@ class MazeGenerator:
             self.is_full = True
 
     def draw(self):
-        loading = pygame.transform.scale(load_image('loading.png'), self.size)
-        loading.set_alpha(70)
         if not self.is_full:
             self.draw_cells()
+            loading = pygame.transform.scale(load_image('loading.png'), self.size)
+            loading.set_alpha(70)
             self.screen.blit(loading, (0, 0))
             self.update()
         else:
-            loading.lock()
             self.screen.fill(BLACK)
             self.draw_cells()
             self.update()

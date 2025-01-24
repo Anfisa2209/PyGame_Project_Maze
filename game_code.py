@@ -45,9 +45,9 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
 
         player = classes.Player(type=1, pic_name=player_pic_name,
                                 pos=(window_size[0] - cell_size, window_size[1] - cell_size), *player_group)
-        for i in range(difficulty*50):
-            spike = classes.Spikes((randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)), cell_size, spikes_group)
-            spikes.append(spike)
+        # for i in range(difficulty*50):
+        #     spike = classes.Spikes((randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)), cell_size, spikes_group)
+        #     spikes.append(spike)
             #Здесь нужно при появлении сделать проверку на стену слева или справаб иначе ищем новое место
         while in_game:
             # monsters[0].get_path((0, 0), (10, 5))
@@ -169,6 +169,6 @@ def game_ended(text, window_size, cell_size, difficulty, player_pic_name):
         pygame.display.update()
 
 
-start_game((950, 600), 50, 1, 'players/ninja_player/ninja_player_walk_right.png')
+start_game((960, 600), 40, 1, 'players/black_player/black_player_walk_right.png')
 # Называем по принципу - monsters/monster2/monster2_walk_right.png
 # простой - 60, средний - 40, сложный - 35
