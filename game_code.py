@@ -40,7 +40,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                     for _ in range(3 * difficulty)]
 
         player = classes.Player(type=1, pic_name=player_pic_name,
-                                pos=(window_size[0] - cell_size, window_size[1] - cell_size))
+                                pos=(window_size[0] - cell_size + 10, window_size[1] - cell_size + 3))
         for _ in range(3 * difficulty):  # создание врагов
             enemy_type = random.randint(0, 10)
             if enemy_type <= 7:
@@ -131,7 +131,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 #         monster.move_enemy((0, 0), player.get_coords(player.pos))
             screen.blit(maze_fon, (0, 0))
             # monsters[0].update(screen)
-            # monsters[0].move_enemy(monsters[0].pos, player.get_coords(player.pos))
+            # monsters[0].move_enemy(monsters[0].get_coords(monsters[0].pos), player.get_coords(player.pos))
             player.update()
             player.update_animation()
             player.draw(screen)
@@ -141,6 +141,6 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
             pygame.display.flip()
 
 
-start_game((950, 600), 50, 1, 'players/ninja_player/ninja_player_walk_right.png')
+start_game((900, 600), 50, 1, 'players/ninja_player/ninja_player_walk_right.png')
 # Называем по принципу - monsters/monster2/monster2_walk_right.png
 # простой - 50, средний - 40, сложный - 35

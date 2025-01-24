@@ -36,18 +36,22 @@ def create_list_wall():
     # Создания списка всех стен (координаты начала и конца)
 
 
-def check_conflict_with_wall(pos):
+def check_conflict_with_wall(pos, direction=''):
+    x, y = pos
     walls = create_list_wall()
+    lst_coords = [(x, y), (x + 10, y + 27), (x + 25, y), (x + 10, y), (x + 25, y + 10), (x, y + 13), (x + 25, y + 27),
+                  (x + 15, y + 27), (x, y + 27)]
     for i in walls:
-        x, y = pos
         start_x, start_y = i[0]
         end_x, end_y = i[1]
-        for j, k in (x, y), (x + 10, y + 27), (x + 30, y), (x + 10, y), (x + 30, y + 10), (x, y + 13), (x + 30, y + 27):
-            if start_y == end_y and start_y in range(k - 2, k) and j in range(min(start_x, end_x),
+        for j, k in lst_coords:
+            if start_y == end_y and start_y in range(y + 2, y + 25) and j in range(min(start_x, end_x),
                                                                               max(start_x, end_x) + 1):
+                print(i, j, k, (x, y))
                 return True
-            elif start_x == end_x and start_x in range(j - 2, j) and k in range(min(start_y, end_y),
+            elif start_x == end_x and start_x in range(x - 1, x + 25) and k in range(min(start_y, end_y),
                                                                                 max(start_y, end_y) + 1):
+                print(i, j, k, (x, y))
                 return True
     return False
     # Проверка столкновения со стеной
@@ -114,7 +118,6 @@ class Creature(pygame.sprite.Sprite):
         # Получение урона, если хп меньше либо равно нулю, то смерть
 
     def move(self, direction):
-        print(self.rect.left, self.rect.right, self.rect.top, self.rect.bottom, self.pos)
         if direction == 'up':
             if not check_conflict_with_wall((self.rect.x, self.rect.y - self.speed)):
                 self.rect.y -= self.speed
@@ -143,19 +146,24 @@ class Creature(pygame.sprite.Sprite):
         # Получение координат клетки на котором находится существо, pos которого мы получили
 
     def is_free(self, start_cell, finish_cell):
-        x_start, y_start = start_cell
-        x_finish, y_finish = finish_cell
+        walls = create_list_wall()
+        x_start, y_start = [i * self.width for i in start_cell]
+        x_finish, y_finish = [i * self.width for i in finish_cell]
         result = False
         if x_finish == x_start:
-            result = check_conflict_with_wall((x_finish + 2, max(y_finish, y_start)))
+            result = check_conflict_with_wall((x_finish + 3, max(y_finish, y_start)))
         elif y_start == y_finish:
-            result = check_conflict_with_wall((max(x_finish, x_start), y_start + 2))
+            result = check_conflict_with_wall((max(x_finish, x_start), y_start + 3))
         return True if not result else False
 
     # Проверяет есть ли между клетками стены
 
 
+ENEMY_EVENT_TYPE = 30
+
+
 class Enemy(Creature):
+
     def get_path(self, start, finish):
         INF = 99999
         x, y = start
@@ -170,12 +178,11 @@ class Enemy(Creature):
             x, y = queue.pop(0)
             for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
                 next_x, next_y = x + dx, y + dy
-                if next_x <= self.row and next_y <= self.column:
-                    if 0 <= next_x < self.row and 0 < next_y < self.column and 0 <= x < self.row and 0 < y < self.column:
-                        if self.is_free((x, y), (next_x, next_y)) and distance[next_y][next_x] == INF:
-                            distance[next_y][next_x] = distance[y][x] + 1
-                            prev[next_y][next_x] = (x, y)
-                            queue.append((next_x, next_y))
+                if 0 <= next_x < self.row and 0 < next_y < self.column:
+                    if self.is_free((x, y), (next_x, next_y)) and distance[next_y][next_x] == INF:
+                        distance[next_y][next_x] = distance[y][x] + 1
+                        prev[next_y][next_x] = (x, y)
+                        queue.append((next_x, next_y))
         x, y = finish
         if distance[y][x] == INF or start == finish:
             return start  # Идти никуда не надо, либо невозможно либо уже дошли
@@ -189,17 +196,20 @@ class Enemy(Creature):
         screen.blit(self.animation[self.current_frame], self.pos)
 
     def move_enemy(self, pos_enemy, pos_hero):
-        self.diraction = ''
         next_x, next_y = self.get_path(pos_enemy, pos_hero)
         if self.pos[0] < next_x:
-            self.diraction = 'right'
+            self.animation = self.walk_right
+            self.rect.x += self.width
         if self.pos[0] > next_x:
-            self.diraction = 'left'
+            self.rect.x -= self.width
+            self.animation = self.walk_left
         if self.pos[1] < next_y:
-            self.diraction = 'down'
+            self.rect.y += self.width
+            self.animation = self.walk_down
         if self.pos[1] > next_y:
-            self.diraction = 'up'
-        self.move(self.diraction)
+            self.rect.y -= self.width
+            self.animation = self.walk_up
+        self.pos = (self.rect.x, self.rect.y)
 
     def set_position(self, next_pos):
         pass
