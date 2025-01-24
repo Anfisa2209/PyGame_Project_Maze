@@ -39,19 +39,24 @@ def create_list_wall():
 def check_conflict_with_wall(pos, direction=''):
     x, y = pos
     walls = create_list_wall()
+
+    f = open('for_get_coords.csv', 'r')
+    copy_f = f.readlines()
+    width = int(copy_f[-1])
+    f.close()
+
     lst_coords = [(x, y), (x + 10, y + 27), (x + 25, y), (x + 10, y), (x + 25, y + 10), (x, y + 13), (x + 25, y + 27),
                   (x + 15, y + 27), (x, y + 27)]
     for i in walls:
         start_x, start_y = i[0]
         end_x, end_y = i[1]
         for j, k in lst_coords:
-            if start_y == end_y and start_y in range(y + 2, y + 25) and j in range(min(start_x, end_x),
-                                                                              max(start_x, end_x) + 1):
-                print(i, j, k, (x, y))
-                return True
+            if start_y == end_y and start_y in range(y, y + 27) and j in range(min(start_x, end_x),
+                                                                               max(start_x, end_x) + 1):
+                if direction not in ['right', 'left'] or y not in range(start_y, start_y + width):
+                    return True
             elif start_x == end_x and start_x in range(x - 1, x + 25) and k in range(min(start_y, end_y),
-                                                                                max(start_y, end_y) + 1):
-                print(i, j, k, (x, y))
+                                                                                     max(start_y, end_y) + 1):
                 return True
     return False
     # Проверка столкновения со стеной
@@ -127,11 +132,11 @@ class Creature(pygame.sprite.Sprite):
                 self.rect.y += self.speed
                 self.animation = self.walk_down
         if direction == 'left':
-            if not check_conflict_with_wall((self.rect.x - self.speed, self.rect.y)):
+            if not check_conflict_with_wall((self.rect.x - self.speed, self.rect.y), direction):
                 self.rect.x -= self.speed
                 self.animation = self.walk_left
         elif direction == 'right':
-            if not check_conflict_with_wall((self.rect.x + self.speed, self.rect.y)):
+            if not check_conflict_with_wall((self.rect.x + self.speed, self.rect.y), direction):
                 self.animation = self.walk_right
                 self.rect.x += self.speed
         self.pos = (self.rect.x, self.rect.y)
@@ -367,4 +372,4 @@ class Spikes(pygame.sprite.Sprite):
         self.is_activated = True
         self.rect = self.image.get_rect()
         pass
-    #Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).
+    # Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).
