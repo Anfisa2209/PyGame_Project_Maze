@@ -4,7 +4,6 @@ from random import randint
 
 import pygame
 import pygame_gui
-import game_code
 
 
 def load_image(task, colorkey=None):
@@ -68,6 +67,7 @@ class Button:
             if self.task == 'Играть':
                 choose_level()
             if self.task in ['Легкий уровень', 'Средний уровень', 'Сложный уровень']:
+                from game_code import start_game
                 if self.task == 'Легкий уровень':
                     difficulty = 1
                     cell_size = randint(50, 60)
@@ -77,7 +77,7 @@ class Button:
                 else:
                     cell_size = randint(10, 20)
                     difficulty = 3
-                game_code.start_game(WINDOW_SIZE, cell_size, difficulty)
+                start_game(WINDOW_SIZE, cell_size, difficulty, 'players/ninja_player/ninja_player_walk_right.png')
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()

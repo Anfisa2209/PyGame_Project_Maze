@@ -307,13 +307,22 @@ class Player(Creature):
 
 
 class Cherry(pygame.sprite.Sprite):
-    def __init__(self, pos, *group):
+    def __init__(self, image, pos, *group):
         super().__init__(*group)
-        self.is_visible = True
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = pos
         self.pos = pos
 
-    def get_taken(self):
-        self.is_visible = 0
+    def draw(self, screen):
+        screen.blit(self.image, self.pos)
+
+    def update(self, player):
+        if player.get_coords(player.pos) == player.get_coords(self.pos):
+            pygame.mixer.music.load('data/music/cherry.mp3')
+            pygame.mixer.music.play()
+            self.pos = (1000, 3000)
+            self.rect.x, self.rect.y = self.pos
 
 
 class Weapon(pygame.sprite.Sprite):
@@ -345,3 +354,17 @@ class Weapon(pygame.sprite.Sprite):
     def check_hit_wall(self):
         pass
     # Пока не удаляю, но эта функция не нужна ее заменяет check_conflict_whith_wall
+
+
+class Spikes(pygame.sprite.Sprite):
+    def __init__(self, pos, cell_size, *group):
+        super().__init__(pos, cell_size, *group)
+        self.image = load_image('spikes', -1)
+        self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size)
+        self.is_activated = False
+
+    def activate(self):
+        self.is_activated = True
+        self.rect = self.image.get_rect()
+        pass
+    #Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size).
