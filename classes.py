@@ -375,16 +375,25 @@ class Weapon(pygame.sprite.Sprite):
 
 
 class Spikes(pygame.sprite.Sprite):
-    def __init__(self, pos, cell_size, *group, xy):
+    def __init__(self, pos, cell_size, *group):
         super().__init__(pos, cell_size, *group)
-        self.image = load_image('spikes', -1)
+        self.img = load_image('spikes', -1)
+        self.images_for_animation = [self.img.subsurface(((i + 2) * 13, 0, 13, 13))for i in range(11)]
+        self.image = pygame.transform.scale(self.images_for_animation[0], (self.cell_size, self.cell_size))
+        self.pos = pos
+        self.cell_size = cell_size
         self.rect = pygame.rect.Rect(pos[0], pos[1], cell_size, cell_size)
         self.is_activated = False
 
     def do_activate(self):
-        self.rect = self.image.get_rect()
         self.is_activated = True
-        pass
+        for i in range(11):
+            self.image = pygame.transform.scale(self.images_for_animation[i], (self.cell_size, self.cell_size))
+            self.rect = self.image.get_rect()
+        for i in range(11, 1, -1):
+            self.image = self.images_for_animation[i]
+            self.rect = self.image.get_rect()
+        self.rect = pygame.rect.Rect(self.pos[0], self.pos[1], self.cell_size, self.cell_size)
     # Тут должна быть анимация открытия - закрытия, всё длиной в одну секунду. В каждый кадр рект должен быть, как у
     # картинки. По окончании анимации self.is_activated = False, a self.rect = pygame.rect.Rect(pos[0], pos[1],
     # cell_size, cell_size).

@@ -45,10 +45,10 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
 
         player = classes.Player(type=1, pic_name=player_pic_name,
                                 pos=(window_size[0] - cell_size, window_size[1] - cell_size), *player_group)
-        # for i in range(difficulty*50):
-        #     pos, direction = classes.choose_pos_for_spike()
-        #     spike = classes.Spikes(pos, cell_size, spikes_group, xy=direction)
-        #     spikes.append(spike)
+        #for i in range(difficulty*50):
+            #pos, direction = classes.choose_pos_for_spike()
+            #spike = classes.Spikes(pos, cell_size, spikes)
+            #spikes.append(spike)
 
         while in_game:
             # monsters[0].get_path((0, 0), (10, 5))
@@ -111,7 +111,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                     if spike.is_activated:
                         player.get_hit(1)
                     else:
-                        spike.do_activate
+                        spike.do_activate()
             player.update()
             player.update_animation()
             player.draw(screen)
