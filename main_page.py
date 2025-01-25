@@ -1,15 +1,17 @@
 import os
 import sys
-from random import randint
+import sqlite3
 
 import pygame
 import pygame_gui
+
+import authorise_window
+from generate_maze import MazeGenerator
 
 
 def load_image(task, colorkey=None):
     fulltask = os.path.join('data', task)
     if not os.path.isfile(fulltask):
-        print(f"Файл с изображением '{fulltask}' не найден")
         sys.exit()
     image = pygame.image.load(fulltask)
     if colorkey is not None:
@@ -23,13 +25,23 @@ def load_image(task, colorkey=None):
 
 
 pygame.init()
-WINDOW_SIZE = (967, 560)
-OPENED_MENU = False  # открыто ли сейчас окно меню
+WINDOW_SIZE = WIDTH, HEIGHT = 950, 560
 screen = pygame.display.set_mode(WINDOW_SIZE)
 maze_image = load_image('maze_fon.jpg', (255, 255, 255))
+button_image = load_image('buttons/button.png', -1)
 MANAGER = pygame_gui.UIManager(WINDOW_SIZE)
 CLOCK = pygame.time.Clock()
 screen.blit(maze_image, (0, 0))
+time_delta = CLOCK.tick(60) / 1000.0
+
+OPENED_MENU = CONFIRMATION_WINDOW_EXISTS = False  # открыто ли сейчас окно меню и есть ли окно для подтверждения
+exit_btn = authorise_btn = settings_btn = statistics_btn = instructions_btn = confirmation_window = None
+cur_player_rect = player1_rect = player2_rect = []  # список координат картинок карточек
+exit_game_text = 'Вы уверены, что хотите выйти из игры?'
+USER_ID = 0
+connect = sqlite3.connect('maze_db')
+cursor = connect.cursor()
+players_pos = {'current': 'ninja_player', 'small_player1': 'elf_player', 'small_player2': 'black_player'}
 
 
 class Button:
@@ -62,145 +74,290 @@ class Button:
 
     def on_click(self, mouse_pos):
         """если нажали на кнопку"""
-        global OPENED_MENU
-        if self.check_mouse_pos(mouse_pos):  # если мышка находится в кнопке
+        global OPENED_MENU, confirmation_window, CONFIRMATION_WINDOW_EXISTS
+        if self.check_mouse_pos(mouse_pos) and not CONFIRMATION_WINDOW_EXISTS:  # если мышка находится в кнопке
             if self.task == 'Играть':
                 choose_level()
             if self.task in ['Легкий уровень', 'Средний уровень', 'Сложный уровень']:
-                from game_code import start_game
                 if self.task == 'Легкий уровень':
-                    difficulty = 1
-                    cell_size = randint(50, 60)
+                    cell_size = 60
                 elif self.task == 'Средний уровень':
-                    difficulty = 2
-                    cell_size = randint(20, 30)
+                    cell_size = 50
                 else:
-                    cell_size = randint(10, 20)
-                    difficulty = 3
-                start_game(WINDOW_SIZE, cell_size, difficulty, 'players/ninja_player/ninja_player_walk_right.png')
+                    cell_size = 40
+                generator = MazeGenerator(WINDOW_SIZE, cell_size)
+                generator.main_loop()
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
             if self.task == 'Выйти':
-                print(1)
-                do_exit()
-
-    def hover(self, mouse_pos):
-        if self.check_mouse_pos(mouse_pos):
-            print(1)
+                confirmation_window = create_confirmation_window('Подтверждение', exit_game_text, MANAGER)
+                CONFIRMATION_WINDOW_EXISTS = True
+                check_confirmation_window(confirmation_window)
+            if self.task == 'Авторизоваться':
+                if USER_ID == 0:
+                    from authorise_window import main as authorise_main
+                    OPENED_MENU = False
+                    authorise_main()
+                else:
+                    from personal_account import main
+                    main(USER_ID)
+            if self.task == 'карта игрока':
+                edit_current_player()
+            if self.task == 'Статистика':
+                statistic()
+            if self.task == 'Инструкция':
+                instruction()
 
     def check_mouse_pos(self, mouse_pos):
-        """проверяет, что мышка находится внутри кнопки"""
+        """Проверяет, что мышка находится внутри кнопки"""
         mouse_x, mouse_y = mouse_pos
         if mouse_x in range(self.rect.left, self.rect.right) and mouse_y in range(self.rect.top, self.rect.bottom):
             return True
         return
 
 
-def choose_level():
-    """выбор уровня"""
-    level_image = load_image('buttons/button.png', (255, 255, 255))
-    easy_level = Button(level_image, x_pos=460, y_pos=240, text='Легкий', task='Легкий уровень')
-    medium_level = Button(level_image, x_pos=460, y_pos=300, text='Средний', task='Средний уровень')
-    hard_level = Button(level_image, x_pos=460, y_pos=360, text='Сложный', task='Сложный уровень')
-    level_buttons = [easy_level, medium_level, hard_level]
-    screen.fill((0, 0, 0))
-    screen.blit(maze_image, (0, 0))
+def edit_current_player():
+    # меняет текущего персонажа
+    global players_pos
+    x, y = pygame.mouse.get_pos()
+    if (x in range(cur_player_rect[0], cur_player_rect[0] + cur_player_rect[2])
+            and y in range(cur_player_rect[1], cur_player_rect[1] + cur_player_rect[3])):
+        pass
+    if (x in range(player1_rect[0], player1_rect[0] + player1_rect[2])
+            and y in range(player1_rect[1], player1_rect[1] + player1_rect[3])):
+        players_pos['current'], players_pos['small_player1'] = players_pos['small_player1'], players_pos['current']
+    if (x in range(player2_rect[0], player2_rect[0] + player2_rect[2])
+            and y in range(player2_rect[1], player2_rect[1] + player2_rect[3])):
+        players_pos['current'], players_pos['small_player2'] = players_pos['small_player2'], players_pos['current']
+    if USER_ID:
+        cursor.execute('''UPDATE Person SET player = ? WHERE id = ?''', (players_pos['current'], USER_ID))
+        connect.commit()
+
+
+def statistic():
+    # окно, где пользователь может посмотреть свои успехи в игре
+    global confirmation_window, CONFIRMATION_WINDOW_EXISTS
+    pygame.display.set_caption('Статистика')
+    manager = pygame_gui.UIManager(WINDOW_SIZE)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                main()
+                CONFIRMATION_WINDOW_EXISTS = True
+                confirmation_window = create_confirmation_window('Подтверждение', exit_game_text, manager)
             if event.type == pygame.MOUSEBUTTONDOWN:
-                for btn in level_buttons:
-                    btn.on_click(pygame.mouse.get_pos())
-        for btn in level_buttons:
-            btn.update()
-
+                if go_back.check_mouse_pos(pygame.mouse.get_pos()) and not CONFIRMATION_WINDOW_EXISTS:
+                    main(USER_ID)
+                if CONFIRMATION_WINDOW_EXISTS:
+                    check_confirmation_window(confirmation_window)
+            if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                terminate()
+            manager.process_events(event)
+        screen.blit(maze_image, (0, 0))
+        if not USER_ID:
+            authorise_window.write_text(screen, 'Вы не зарегистрированы', 340, 250, size=30)
+        go_back.update()
+        manager.update(time_delta)
+        manager.draw_ui(screen)
         pygame.display.update()
 
 
-def open_close_menu():
-    """открывает или закрывает меню окно с меню"""
-    if OPENED_MENU:
-        points = [(WINDOW_SIZE[0] * 3 / 4, 0), WINDOW_SIZE]
-        pygame.draw.rect(screen, '#2E8B57', points)
-        icon_data = [('Авторизоваться', 'icons/authorise_icon.png'), ('Статистика', "icons/graphiques_icon.png"),
-                     ('Инструкция', 'icons/instruction_icon.png'), ('Настройки', 'icons/settings_icon.png')]
-        exit_image = pygame.transform.scale(load_image('buttons/button.png', -1), (200, 70))
-        exit_btn = Button(image=exit_image, x_pos=WINDOW_SIZE[0] - exit_image.get_width() // 2,
-                          y_pos=WINDOW_SIZE[1] - exit_image.get_height(), text='ВЫХОД', font_size=30, task='Выйти')
-        exit_btn.update()
-        buttons = []
-        for i in range(4):
-            """создает кнопки во вкладке меню"""
-            image = load_image('buttons/button.png', (255, 255, 255))
-            image_size = (100, 40)
-            image = pygame.transform.scale(image, image_size)
-            btn = Button(image=image, x_pos=850, y_pos=100 + 2 * i * image_size[1],
-                         task=icon_data[i][0], icon=icon_data[i][1])
-            buttons.append(btn)
-        for btn in buttons:
-            btn.update()
-
-    else:
-        main()
-    pygame.display.update()
+def write(instruction_text, font, text_coord):
+    # пишет текст инструкции
+    for line in instruction_text:
+        string_rendered = font.render(line, True, (166, 40, 52))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 50
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
 
 
-def authorise():
-    """позволяет войти или создать аккаунт"""
-
-
-def statistics():
-    """открывает страницу с рейтингом"""
-
-
-def settings():
-    """страница настроек"""
-
-
-def instructions():
-    """открывает страницу, где можно будет узнать об игре и потренироваться/разобраться"""
-
-
-def do_exit():
-    '''показывает окошко, которое спрашивает у пользователя, действительно ли он хочет выйти'''
-    pygame_gui.windows.UIConfirmationDialog(
-        rect=pygame.Rect((250, 200), (300, 200)),
-        manager=MANAGER,
-        window_title='Подтвердите действие',
-        action_long_desc='Вы уверены, что хотите выйти?',
-        action_short_name='OK', blocking=True)
-
-
-def main():
-    screen.fill((0, 0, 0))
-    screen.blit(maze_image, (0, 0))
-    time_delta = CLOCK.tick(60) / 1000.0
-
-    play_btn_image = load_image('buttons/play_btn_image.png', (255, 255, 255))  # картинка кнопки играть
-    play_button = Button(image=play_btn_image, x_pos=WINDOW_SIZE[0] // 2,
-                         y_pos=(WINDOW_SIZE[1] - play_btn_image.get_height()) // 2, task='Играть')
-    menu_image = load_image('buttons/eye_menu.png', (0, 0, 0))  # картинка кнопки меню
-    menu_button = Button(image=menu_image, x_pos=WINDOW_SIZE[0] - 50, y_pos=40, task='Меню')
-    all_buttons = [play_button, menu_button]
+def instruction():
+    global confirmation_window, CONFIRMATION_WINDOW_EXISTS
+    # окно с инструкцией
+    # текст инструкции находится в файле instruction.txt
+    pygame.display.set_caption('Инструкция')
+    manager = pygame_gui.UIManager(WINDOW_SIZE)
+    instruction_text = open('instruction.txt', encoding='utf-8', mode='r').readlines()
+    font = pygame.font.Font(None, 30)
+    text_coord = 10
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                do_exit()
+                CONFIRMATION_WINDOW_EXISTS = True
+                confirmation_window = create_confirmation_window('Подтверждение', exit_game_text, manager)
             if event.type == pygame.MOUSEBUTTONDOWN:
-                for btn in all_buttons:
-                    btn.on_click(pygame.mouse.get_pos())
+                if go_back.check_mouse_pos(pygame.mouse.get_pos()) and not CONFIRMATION_WINDOW_EXISTS:
+                    main(USER_ID)
+                if CONFIRMATION_WINDOW_EXISTS:
+                    check_confirmation_window(confirmation_window)
             if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
-                sys.exit()
+                terminate()
+            manager.process_events(event)
+
+        screen.blit(maze_image, (0, 0))
+        write(instruction_text, font, text_coord)
+        go_back.update()
+        manager.update(time_delta)
+        manager.draw_ui(screen)
+        pygame.display.flip()
+
+
+def choose_level():
+    """Выбор уровня"""
+    global OPENED_MENU, confirmation_window, CONFIRMATION_WINDOW_EXISTS
+    easy_level = Button(button_image, x_pos=460, y_pos=240, text='Легкий', task='Легкий уровень')
+    medium_level = Button(button_image, x_pos=460, y_pos=300, text='Средний', task='Средний уровень')
+    hard_level = Button(button_image, x_pos=460, y_pos=360, text='Сложный', task='Сложный уровень')
+    buttons = [easy_level, medium_level, hard_level]
+
+    screen.blit(maze_image, (0, 0))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                CONFIRMATION_WINDOW_EXISTS = True
+                confirmation_window = create_confirmation_window('Подтверждение', exit_game_text, MANAGER)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for btn in buttons:
+                    btn.on_click(pygame.mouse.get_pos())
+                if go_back.check_mouse_pos(pygame.mouse.get_pos()) and not CONFIRMATION_WINDOW_EXISTS:
+                    main(USER_ID)
+                if CONFIRMATION_WINDOW_EXISTS:
+                    check_confirmation_window(confirmation_window)
+
+            if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                terminate()
             MANAGER.process_events(event)
-        MANAGER.update(time_delta)
-        for btn in all_buttons:
+        screen.blit(maze_image, (0, 0))
+        for btn in buttons:
             btn.update()
+        go_back.update()
+        MANAGER.update(time_delta)
         MANAGER.draw_ui(screen)
         pygame.display.update()
 
 
+def open_close_menu():
+    """Открывает или закрывает окно с меню"""
+    global exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn
+    if OPENED_MENU:
+        points = [(WIDTH * 3 / 4, 0), WINDOW_SIZE]
+        pygame.draw.rect(screen, '#2E8B57', points)
+        exit_image = pygame.transform.scale(button_image, (200, 70))
+        exit_btn = Button(image=exit_image, x_pos=WIDTH - exit_image.get_width() // 2,
+                          y_pos=HEIGHT - exit_image.get_height(), text='ВЫЙТИ', font_size=30, task='Выйти')
+
+        image_size = (100, 40)
+        small_button_image = pygame.transform.scale(button_image, image_size)
+        authorise_btn = Button(image=small_button_image, x_pos=850, y_pos=150, task='Авторизоваться',
+                               icon='icons/authorise_icon.png')
+        settings_btn = Button(image=small_button_image, x_pos=850, y_pos=210, task='Настройки',
+                              icon='icons/settings_icon.png')
+        statistics_btn = Button(image=small_button_image, x_pos=850, y_pos=260, task='Статистика',
+                                icon='icons/graphiques_icon.png')
+        instructions_btn = Button(image=small_button_image, x_pos=850, y_pos=320, task='Инструкция',
+                                  icon='icons/instruction_icon.png')
+
+    else:
+        authorise_btn = settings_btn = statistics_btn = instructions_btn = None
+        main(USER_ID)
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def create_confirmation_window(window_title, text, manager):
+    # окно для подтверждения на удаление/выход из аккаунта
+    return pygame_gui.windows.UIConfirmationDialog(rect=pygame.Rect((250, 200), (300, 200)),
+                                                   manager=manager,
+                                                   window_title=window_title,
+                                                   action_long_desc=text)
+
+
+def check_confirmation_window(confirm_window):
+    # проверяет, что нажали выход или отмена, и меняет состояние CONFIRMATION_WINDOW_EXISTS
+    global CONFIRMATION_WINDOW_EXISTS
+    try:
+        cancel_x, cancel_y, cancel_width, cancel_height = confirm_window.cancel_button.rect
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        close_x, close_y, close_width, close_height = confirm_window.close_window_button.rect
+        if (mouse_x in range(cancel_x, cancel_x + cancel_width) and
+            mouse_y in range(cancel_y, cancel_y + cancel_height)) or \
+                (mouse_x in range(close_x, close_x + close_width)
+                 and mouse_y in range(close_y, close_y + close_height)):
+            CONFIRMATION_WINDOW_EXISTS = False
+    except AttributeError:
+        CONFIRMATION_WINDOW_EXISTS = False
+
+
+def main(user_id):
+    global USER_ID, CONFIRMATION_WINDOW_EXISTS, cur_player_rect, player1_rect, player2_rect, players_pos, \
+        confirmation_window
+    USER_ID = user_id
+    pygame.display.set_caption('Главная страница')
+    screen.blit(maze_image, (0, 0))
+
+    play_btn_image = load_image('buttons/play_btn_image.png', (255, 255, 255))  # картинка кнопки играть
+    play_button = Button(image=play_btn_image, x_pos=WIDTH // 2,
+                         y_pos=(HEIGHT - play_btn_image.get_height()) // 2, task='Играть')
+    menu_image = load_image('buttons/eye_menu.png', -1)  # картинка кнопки меню
+    menu_button = Button(image=menu_image, x_pos=WIDTH - 50, y_pos=40, task='Меню')
+    cur_player_card = Button(load_image('cards/player_card.png', -1), x_pos=150, y_pos=WIDTH / 4,
+                             task='карта игрока')
+
+    small_card_image = pygame.transform.scale(load_image('cards/player_card.png', -1), (100, 100))
+    small_player_card1 = Button(small_card_image, x_pos=95, y_pos=430, task='карта игрока')
+    small_player_card2 = Button(small_card_image,
+                                x_pos=small_player_card1.image.get_width() + small_player_card1.x_pos + 5,
+                                y_pos=430, task='карта игрока')
+    cur_player_rect, player1_rect, player2_rect = cur_player_card.rect, small_player_card1.rect, small_player_card2.rect
+    players_images = list(players_pos.values())  # получаем всех игроков
+    player = cursor.execute('''SELECT player FROM Person WHERE id = ?''', (USER_ID,)).fetchone()[
+        0] if USER_ID else 'ninja_player'
+    players_images.remove(player)  # удаляем текущего - в списке только игроки для маленьких карточек
+    players_pos = {'current': player, 'small_player1': players_images[0], 'small_player2': players_images[1]}
+
+    all_buttons = [play_button, menu_button, cur_player_card, small_player_card1, small_player_card2]
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                CONFIRMATION_WINDOW_EXISTS = True
+                confirmation_window = create_confirmation_window('Подтверждение',
+                                                                 exit_game_text, MANAGER)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for btn in all_buttons:
+                    btn.on_click(pygame.mouse.get_pos())
+                if CONFIRMATION_WINDOW_EXISTS:
+                    check_confirmation_window(confirmation_window)
+            if event.type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                terminate()
+            MANAGER.process_events(event)
+
+        screen.blit(maze_image, (0, 0))
+        if OPENED_MENU:
+            all_buttons.extend((exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn))
+            pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), WINDOW_SIZE])
+        MANAGER.update(time_delta)
+        for btn in all_buttons:
+            btn.update()
+        current_player_image = Button(pygame.transform.scale(load_image(f'players/{players_pos["current"]}.png', -1),
+                                                             (200, 200)), 145, WIDTH / 4, task='')
+        small_player1 = Button(load_image(f'players/{players_pos["small_player1"]}.png', -1), 95, 430, task='')
+        small_player2 = Button(load_image(f'players/{players_pos["small_player2"]}.png', -1),
+                               small_player_card1.image.get_width() + small_player_card1.x_pos + 5, 430, task='')
+        current_player_image.update()
+        small_player1.update()
+        small_player2.update()
+        MANAGER.draw_ui(screen)
+        pygame.display.update()
+
+
+go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
+
 if __name__ == '__main__':
-    main()
+    main(USER_ID)
