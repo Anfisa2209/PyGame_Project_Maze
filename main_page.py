@@ -166,19 +166,17 @@ def statistic():
             authorise_window.write_text(screen, 'Вы не зарегистрированы', 340, 250, size=30)
         else:
             request = 'SELECT cherries, lives, time FROM Statistic JOIN Person ON user_id = ?'
-            all_data = cherries = lives = time = []
+            cherries = lives = timee = []
             for data in cursor.execute(request, (USER_ID,)).fetchall():
-                if data not in all_data:
-                    all_data.append(data)
-                    cherries.append(data[0])
-                    lives.append(data[1])
-                    time.append(data[2])
+                cherry, live, time = data
+                cherries.append(cherry)
+                lives.append(live)
+                timee.append(time)
 
-            print(time)
-            lines = [f'Вы потратили {str(sum(time))} (мин) времени в игре',
-                     f"Рекордная игра - {str(cherries.index(max(cherries)) + 1)}, \nв ней вы собрали {max(cherries)}",
-                     f'За все время вы съели {str(len(cherries))} {game_code.change_word_form("вишенка", len(cherries))}']
-            write(lines, pygame.font.Font(None, 30), 40)
+            lines = [f'Вы потратили {str(sum(timee))} (мин) времени в игре',
+                     f"Ваш рекорд по вишенкам: {max(cherries)}",
+                     f'За все время вы съели {sum(cherries)} {game_code.change_word_form("вишенка", sum(cherries))}']
+            write(lines, pygame.font.Font(None, 50), 100)
         go_back.update()
         manager.update(time_delta)
         manager.draw_ui(screen)
@@ -384,4 +382,4 @@ def main(user_id):
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
 
 if __name__ == '__main__':
-    main(44)
+    main(1)
