@@ -1,3 +1,5 @@
+import sqlite3
+
 import pymorphy3
 
 import classes
@@ -12,6 +14,9 @@ pygame.init()
 clock = pygame.time.Clock()
 fps = 80
 start_time = pygame.time.get_ticks()
+
+connect = sqlite3.connect('maze_db')
+cursor = connect.cursor()
 
 
 def start_game(cell_size, difficulty, player_pic_name, user_id):
@@ -64,10 +69,6 @@ def start_game(cell_size, difficulty, player_pic_name, user_id):
                         paused = not paused
                         if paused:
                             pygame.image.save(screen, 'data/paused_maze.png')
-                    if event.key == pygame.K_e:
-                        if player.cherry_list:
-                            player.health += 1
-                            player.cherry_list.pop(-1)
             if not paused:
                 screen.blit(maze_fon, (0, 0))
                 for spike in spikes:
@@ -130,9 +131,10 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
     play_again = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 400, 'играть снова', 'Играть снова')
     go_back = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 325, 'Играть', 'На главную')
     cherry_word = change_word_form("вишенка", cherry) if cherry != 1 else 'вишенку'
+    minutes = change_word_form("минута", time) if time != 1 else 'минуту'
     lines = [f'Вы собрали {cherry} {cherry_word}',
              f'У вас осталось {health} {change_word_form("жизнь", health)}',
-             f'Вы потратили {time} {change_word_form("минута", time)}']
+             f'Вы потратили {time} {minutes}']
 
     font = pygame.font.Font(None, 50)
     text_color = (199, 62, 64) if text == 'Вы проиграли!' else (242, 162, 58)
@@ -144,9 +146,13 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
     pygame.draw.rect(screen, (31, 71, 49), rect, width=5)
 
     if user_id:
-        main_page.cursor.execute('UPDATE Statistic SET cherries = ?, lives = ?, time = ? WHERE id = ?',
-                                 (cherry, health, time, user_id))
-        main_page.connect.commit()
+        cherries, time_ = cursor.execute(
+            'select cherries, time from Statistic join person where user_id = ? AND id = ?',
+            (user_id, user_id)).fetchone()
+
+        cursor.execute('UPDATE Statistic SET cherries = ?, lives = ?, time = ? WHERE user_id = ?',
+                       (cherries + cherry, health, time + time_, user_id))
+        connect.commit()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

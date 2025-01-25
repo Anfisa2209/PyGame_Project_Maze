@@ -163,19 +163,18 @@ def statistic():
             manager.process_events(event)
         screen.blit(maze_image, (0, 0))
         if not USER_ID:
-            authorise_window.write_text(screen, 'Вы не зарегистрированы', 340, 250, size=30)
+            font = pygame.font.Font(None, 30)
+            text = font.render('Вы не зарегистрированы', True, 'red')
+            screen.blit(text, (340, 250))
         else:
-            request = 'SELECT cherries, lives, time FROM Statistic JOIN Person ON user_id = ?'
-            cherries = lives = timee = []
-            for data in cursor.execute(request, (USER_ID,)).fetchall():
-                cherry, live, time = data
-                cherries.append(cherry)
-                lives.append(live)
-                timee.append(time)
+            request = 'SELECT cherries, time FROM Statistic JOIN Person ON user_id = ? WHERE id = ?'
+            cherry_eaten = cursor.execute('SELECT max_cherry FROM Statistic JOIN Person ON user_id = ? WHERE id = ?',
+                                          (USER_ID, USER_ID)).fetchone()[0]
+            cherry, time = cursor.execute(request, (USER_ID, USER_ID)).fetchone()
 
-            lines = [f'Вы потратили {str(sum(timee))} (мин) времени в игре',
-                     f"Ваш рекорд по вишенкам: {max(cherries)}",
-                     f'За все время вы съели {sum(cherries)} {game_code.change_word_form("вишенка", sum(cherries))}']
+            lines = [f'Вы потратили {time} (мин) времени в игре',
+                     f"Ваш рекорд по вишенкам: {cherry_eaten}",
+                     f'За все время вы съели {cherry} {game_code.change_word_form("вишенка", cherry)}']
             write(lines, pygame.font.Font(None, 50), 100)
         go_back.update()
         manager.update(time_delta)
@@ -382,4 +381,4 @@ def main(user_id):
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
 
 if __name__ == '__main__':
-    main(1)
+    main(USER_ID)
