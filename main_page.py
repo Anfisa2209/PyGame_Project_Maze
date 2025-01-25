@@ -6,7 +6,8 @@ import pygame
 import pygame_gui
 
 import authorise_window
-from game_code import start_game
+import game_code
+from game_code import start_game, play_music
 
 
 def load_image(task, colorkey=None):
@@ -42,6 +43,9 @@ USER_ID = 0
 connect = sqlite3.connect('maze_db')
 cursor = connect.cursor()
 players_pos = {'current': 'ninja_player', 'small_player1': 'elf_player', 'small_player2': 'black_player'}
+song = play_music('music.mp3', True)
+INF = 9999
+song.play(INF)
 
 
 class Button:
@@ -90,7 +94,7 @@ class Button:
                     cell_size = 40
                     difficulty = 3
                 player_pic_name = 'players/' + players_pos['current'] + '/' + players_pos['current'] + '_walk_right.png'
-                start_game(cell_size, difficulty, player_pic_name)
+                start_game(cell_size, difficulty, player_pic_name, USER_ID)
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
@@ -160,6 +164,22 @@ def statistic():
         screen.blit(maze_image, (0, 0))
         if not USER_ID:
             authorise_window.write_text(screen, 'Вы не зарегистрированы', 340, 250, size=30)
+        else:
+            request = 'SELECT cherries, lives, time FROM Statistic JOIN Person ON user_id = ?'
+            all_data = cherries = lives = time = []
+            for data in cursor.execute(request, (USER_ID,)).fetchall():
+                if data not in all_data:
+                    all_data.append(data)
+                    cherries.append(data[0])
+                    lives.append(data[1])
+                    time.append(data[2])
+                else:
+                    break
+            print(time)
+            lines = [f'Вы потратили {str(sum(time))} (мин) времени в игре',
+                     f"Рекордная игра - {str(cherries.index(max(cherries)) + 1)}, \nв ней вы собрали {max(cherries)}",
+                     f'За все время вы съели {str(len(cherries))} {game_code.change_word_form("вишенка", len(cherries))}']
+            write(lines, pygame.font.Font(None, 30), 40)
         go_back.update()
         manager.update(time_delta)
         manager.draw_ui(screen)
@@ -301,7 +321,8 @@ def check_confirmation_window(confirm_window):
 
 def main(user_id):
     global USER_ID, CONFIRMATION_WINDOW_EXISTS, cur_player_rect, player1_rect, player2_rect, players_pos, \
-        confirmation_window
+        confirmation_window, screen
+    screen = pygame.display.set_mode(WINDOW_SIZE)
     USER_ID = user_id
     pygame.display.set_caption('Главная страница')
     screen.blit(maze_image, (0, 0))
@@ -364,4 +385,4 @@ def main(user_id):
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
 
 if __name__ == '__main__':
-    main(USER_ID)
+    main(1)

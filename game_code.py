@@ -4,16 +4,17 @@ import classes
 from random import randrange
 import pygame
 
-
+import main_page
 from generate_maze import MazeGenerator
 
 WINDOW_SIZE = WIDTH, HEIGHT = 950, 560
 pygame.init()
 clock = pygame.time.Clock()
 fps = 80
+start_time = pygame.time.get_ticks()
 
 
-def start_game(cell_size, difficulty, player_pic_name):
+def start_game(cell_size, difficulty, player_pic_name, user_id):
     if difficulty == 3:
         # 40
         window_size = 880, 600
@@ -34,7 +35,6 @@ def start_game(cell_size, difficulty, player_pic_name):
         maze_fon = classes.load_image('maze.png')
         screen.blit(maze_fon, (0, 0))
         in_game = True
-        time = 0
         spikes = []
 
         spikes_group = pygame.sprite.Group()
@@ -93,13 +93,14 @@ def start_game(cell_size, difficulty, player_pic_name):
                 player.update_animation()
                 player.draw(screen)
                 write_text(screen, str(player.health), cell_size // 3, cell_size // 3, 40, (209, 96, 88))
+                minutes = ((pygame.time.get_ticks() - start_time) // 1000) // 60
                 if player.health == 0 or not player.is_alive:
                     in_game = False
-                    game_ended(screen, 'Вы проиграли!', window_size, cell_size, difficulty, player_pic_name,
-                               player.picked_cherries, time, player.health)
+                    game_ended(screen, 'Вы проиграли!', cell_size, difficulty, player_pic_name,
+                               player.picked_cherries, minutes, player.health, user_id)
                 if player.get_coords(player.pos) == (0, 0) and in_game:
-                    game_ended(screen, 'Вы выиграли!', window_size, cell_size, difficulty, player_pic_name,
-                               player.picked_cherries, time, player.health)
+                    game_ended(screen, 'Вы выиграли!', cell_size, difficulty, player_pic_name,
+                               player.picked_cherries, minutes, player.health, user_id)
                 clock.tick(fps)
                 pygame.display.flip()
             else:
@@ -119,16 +120,16 @@ def play_music(name, long):
         pygame.mixer.music.play()
 
 
-def game_ended(screen, text, window_size, cell_size, difficulty, player_pic_name, cherry, time, health):
+def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, time, health, user_id):
     pygame.display.set_caption(text)
     play_music('lose.mp3' if text == 'Вы проиграли!' else 'win.mp3', False)
 
     button_image = pygame.transform.scale(classes.load_image('buttons/button.png', -1), (150, 50))
     rect = (WIDTH // 4, 15, 500, 500)
-    import main_page
+
     play_again = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 400, 'играть снова', 'Играть снова')
     go_back = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 325, 'Играть', 'На главную')
-    cherry_word = pymorphy3.MorphAnalyzer().parse(change_word_form("вишенка", cherry))[0].inflect({"accs", "sing"})[0]
+    cherry_word = change_word_form("вишенка", cherry) if cherry != 1 else 'вишенку'
     lines = [f'Вы собрали {cherry} {cherry_word}',
              f'У вас осталось {health} {change_word_form("жизнь", health)}',
              f'Вы потратили {time} {change_word_form("минута", time)}']
@@ -141,6 +142,11 @@ def game_ended(screen, text, window_size, cell_size, difficulty, player_pic_name
     color = 55, 102, 53
     pygame.draw.rect(screen, color, rect)
     pygame.draw.rect(screen, (31, 71, 49), rect, width=5)
+
+    if user_id:
+        main_page.cursor.execute('INSERT INTO Statistic (user_id, cherries, lives, time) VALUES (?, ?, ?, ?)',
+                                 (user_id, cherry, health, time))
+        main_page.connect.commit()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -148,7 +154,7 @@ def game_ended(screen, text, window_size, cell_size, difficulty, player_pic_name
             if event.type == pygame.MOUSEBUTTONDOWN:
                 go_back.on_click(pygame.mouse.get_pos())
                 if play_again.check_mouse_pos(pygame.mouse.get_pos()):
-                    start_game(cell_size, difficulty, player_pic_name)
+                    start_game(cell_size, difficulty, player_pic_name, user_id)
         screen.blit(classes.load_image('maze.png'), (0, 0))
         pygame.draw.rect(screen, color, rect)
         pygame.draw.rect(screen, (31, 71, 49), rect, width=5)  # темная обводка
