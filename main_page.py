@@ -173,8 +173,7 @@ def statistic():
                     cherries.append(data[0])
                     lives.append(data[1])
                     time.append(data[2])
-                else:
-                    break
+
             print(time)
             lines = [f'Вы потратили {str(sum(time))} (мин) времени в игре',
                      f"Рекордная игра - {str(cherries.index(max(cherries)) + 1)}, \nв ней вы собрали {max(cherries)}",
@@ -385,4 +384,4 @@ def main(user_id):
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
 
 if __name__ == '__main__':
-    main(1)
+    main(44)

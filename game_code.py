@@ -144,8 +144,8 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
     pygame.draw.rect(screen, (31, 71, 49), rect, width=5)
 
     if user_id:
-        main_page.cursor.execute('INSERT INTO Statistic (user_id, cherries, lives, time) VALUES (?, ?, ?, ?)',
-                                 (user_id, cherry, health, time))
+        main_page.cursor.execute('UPDATE Statistic SET cherries = ?, lives = ?, time = ? WHERE id = ?',
+                                 (cherry, health, time, user_id))
         main_page.connect.commit()
     while True:
         for event in pygame.event.get():
