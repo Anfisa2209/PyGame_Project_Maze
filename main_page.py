@@ -36,16 +36,13 @@ screen.blit(maze_image, (0, 0))
 time_delta = CLOCK.tick(60) / 1000.0
 
 OPENED_MENU = CONFIRMATION_WINDOW_EXISTS = False  # открыто ли сейчас окно меню и есть ли окно для подтверждения
-exit_btn = authorise_btn = settings_btn = statistics_btn = instructions_btn = confirmation_window = None
+exit_btn = authorise_btn = statistics_btn = instructions_btn = confirmation_window = None
 cur_player_rect = player1_rect = player2_rect = []  # список координат картинок карточек
 exit_game_text = 'Вы уверены, что хотите выйти из игры?'
 USER_ID = 0
 connect = sqlite3.connect('maze_db')
 cursor = connect.cursor()
 players_pos = {'current': 'ninja_player', 'small_player1': 'elf_player', 'small_player2': 'black_player'}
-song = play_music('music.mp3', True)
-INF = 9999
-song.play(INF)
 
 
 class Button:
@@ -185,7 +182,7 @@ def statistic():
 def write(instruction_text, font, text_coord):
     # пишет текст инструкции
     for line in instruction_text:
-        string_rendered = font.render(line, True, (166, 40, 52))
+        string_rendered = font.render(line, True, (242, 162, 58))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -274,15 +271,13 @@ def open_close_menu():
         small_button_image = pygame.transform.scale(button_image, image_size)
         authorise_btn = Button(image=small_button_image, x_pos=850, y_pos=150, task='Авторизоваться',
                                icon='icons/authorise_icon.png')
-        settings_btn = Button(image=small_button_image, x_pos=850, y_pos=210, task='Настройки',
-                              icon='icons/settings_icon.png')
-        statistics_btn = Button(image=small_button_image, x_pos=850, y_pos=260, task='Статистика',
+        statistics_btn = Button(image=small_button_image, x_pos=850, y_pos=210, task='Статистика',
                                 icon='icons/graphiques_icon.png')
-        instructions_btn = Button(image=small_button_image, x_pos=850, y_pos=320, task='Инструкция',
+        instructions_btn = Button(image=small_button_image, x_pos=850, y_pos=260, task='Инструкция',
                                   icon='icons/instruction_icon.png')
 
     else:
-        authorise_btn = settings_btn = statistics_btn = instructions_btn = None
+        authorise_btn = statistics_btn = instructions_btn = None
         main(USER_ID)
 
 
@@ -361,7 +356,7 @@ def main(user_id):
 
         screen.blit(maze_image, (0, 0))
         if OPENED_MENU:
-            all_buttons.extend((exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn))
+            all_buttons.extend((exit_btn, authorise_btn, statistics_btn, instructions_btn))
             pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), screen.size])
         MANAGER.update(time_delta)
         for btn in all_buttons:
@@ -381,4 +376,7 @@ def main(user_id):
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
 
 if __name__ == '__main__':
+    song = play_music('music.mp3', True)
+    INF = 9999
+    song.play(INF)
     main(USER_ID)

@@ -48,7 +48,8 @@ def start_game(cell_size, difficulty, player_pic_name, user_id):
 
         cherry_image = pygame.transform.scale(classes.load_image('cherry.png', -1), (cell_size, cell_size))
         cherries = [classes.Cherry(cherry_image,
-                                   (randrange(0, window_size[0], cell_size), randrange(0, window_size[1], cell_size)),
+                                   (randrange(cell_size, window_size[0], cell_size),
+                                    randrange(cell_size, window_size[1], cell_size)),
                                    cherries_group) for _ in range(10 * difficulty)]
 
         player = classes.Player(player_pic_name, (window_size[0] - cell_size, window_size[1] - cell_size),

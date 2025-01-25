@@ -114,12 +114,6 @@ class MazeGenerator:
                 from main_page import choose_level
                 self.screen.fill((0, 0, 0))
                 choose_level()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.setup()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                print(event.pos)
             # Позже уберем, пока еще надо
 
     def remove_walls(self, a, b):
