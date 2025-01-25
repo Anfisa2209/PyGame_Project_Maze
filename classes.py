@@ -91,6 +91,7 @@ class Player:
         self.speed = 2
         self.is_alive = True
         self.picked_cherries = 0  # сколько вишенок собрал герой
+        self.cherry_list = []
         # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
 
         SPRITE_WIDTH, SPRITE_HEIGHT = 30, self.image.get_height()  # размер спрайтов
@@ -185,6 +186,7 @@ class Player:
             cherry.pos = (1000, 3000)
             cherry.rect.x, cherry.rect.y = cherry.pos
             self.picked_cherries += 1
+            self.cherry_list.append(cherry)
             return True
 
     def get_coords(self, pos_event):

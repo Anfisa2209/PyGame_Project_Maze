@@ -60,6 +60,10 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                         paused = not paused
                         if paused:
                             pygame.image.save(screen, 'data/paused_maze.png')
+                    if event.key == pygame.K_e:
+                        if player.cherry_list:
+                            player.health += 1
+                            player.cherry_list.pop(-1)
             if not paused:
                 screen.blit(maze_fon, (0, 0))
                 for spike in spikes:
@@ -84,6 +88,7 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 player.update()
                 player.update_animation()
                 player.draw(screen)
+                write_text(str(player.health), cell_size // 3, cell_size // 3, 40, (209, 96, 88))
                 if player.health == 0 or not player.is_alive:
                     in_game = False
                     game_ended('Вы проиграли!', window_size, cell_size, difficulty, player_pic_name,
@@ -118,7 +123,8 @@ def game_ended(text, window_size, cell_size, difficulty, player_pic_name, cherry
     rect = (WIDTH // 4, 15, 500, 500)
     play_again = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 400, 'играть снова', 'Играть снова')
     go_back = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 325, 'Играть', 'На главную')
-    lines = [f'Вы собрали {cherry} {change_word_form("вишенка", cherry)}',
+    cherry_word = pymorphy3.MorphAnalyzer().parse(change_word_form("вишенка", cherry))[0].inflect({"accs", "sing"})[0]
+    lines = [f'Вы собрали {cherry} {cherry_word}',
              f'У вас осталось {health} {change_word_form("жизнь", health)}',
              f'Вы потратили {time} {change_word_form("минута", time)}']
 
