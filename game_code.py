@@ -4,27 +4,31 @@ import classes
 from random import randrange
 import pygame
 
-import main_page
+
 from generate_maze import MazeGenerator
 
-WINDOW_SIZE = WIDTH, HEIGHT = (950, 600)
+WINDOW_SIZE = WIDTH, HEIGHT = 950, 560
 pygame.init()
 clock = pygame.time.Clock()
 fps = 80
-screen = pygame.display.set_mode(WINDOW_SIZE)
 
 
-def start_game(window_size, cell_size, difficulty, player_pic_name):
-    pygame.display.set_caption('Играть')
-    paused = False
+def start_game(cell_size, difficulty, player_pic_name):
     if difficulty == 3:
-        # 35
-        window_size = 910, 595
+        # 40
+        window_size = 880, 600
     elif difficulty == 2:
-        # 40 cell size
-        window_size = 920, 600
+        # 50 cell size
+        window_size = 900, 600
+    else:
+        window_size = 960, 600
+    pygame.display.set_caption('Играть')
+    screen = pygame.display.set_mode(window_size)
+    paused = False
+
     generator = MazeGenerator(window_size, cell_size)
     generator.main_loop()
+
     if generator.is_full:
         pygame.image.save(screen, 'data/maze.png')
         maze_fon = classes.load_image('maze.png')
@@ -88,13 +92,13 @@ def start_game(window_size, cell_size, difficulty, player_pic_name):
                 player.update()
                 player.update_animation()
                 player.draw(screen)
-                write_text(str(player.health), cell_size // 3, cell_size // 3, 40, (209, 96, 88))
+                write_text(screen, str(player.health), cell_size // 3, cell_size // 3, 40, (209, 96, 88))
                 if player.health == 0 or not player.is_alive:
                     in_game = False
-                    game_ended('Вы проиграли!', window_size, cell_size, difficulty, player_pic_name,
+                    game_ended(screen, 'Вы проиграли!', window_size, cell_size, difficulty, player_pic_name,
                                player.picked_cherries, time, player.health)
                 if player.get_coords(player.pos) == (0, 0) and in_game:
-                    game_ended('Вы выиграли!', window_size, cell_size, difficulty, player_pic_name,
+                    game_ended(screen, 'Вы выиграли!', window_size, cell_size, difficulty, player_pic_name,
                                player.picked_cherries, time, player.health)
                 clock.tick(fps)
                 pygame.display.flip()
@@ -115,12 +119,13 @@ def play_music(name, long):
         pygame.mixer.music.play()
 
 
-def game_ended(text, window_size, cell_size, difficulty, player_pic_name, cherry, time, health):
+def game_ended(screen, text, window_size, cell_size, difficulty, player_pic_name, cherry, time, health):
     pygame.display.set_caption(text)
     play_music('lose.mp3' if text == 'Вы проиграли!' else 'win.mp3', False)
 
     button_image = pygame.transform.scale(classes.load_image('buttons/button.png', -1), (150, 50))
     rect = (WIDTH // 4, 15, 500, 500)
+    import main_page
     play_again = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 400, 'играть снова', 'Играть снова')
     go_back = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 325, 'Играть', 'На главную')
     cherry_word = pymorphy3.MorphAnalyzer().parse(change_word_form("вишенка", cherry))[0].inflect({"accs", "sing"})[0]
@@ -143,19 +148,19 @@ def game_ended(text, window_size, cell_size, difficulty, player_pic_name, cherry
             if event.type == pygame.MOUSEBUTTONDOWN:
                 go_back.on_click(pygame.mouse.get_pos())
                 if play_again.check_mouse_pos(pygame.mouse.get_pos()):
-                    start_game(window_size, cell_size, difficulty, player_pic_name)
+                    start_game(cell_size, difficulty, player_pic_name)
         screen.blit(classes.load_image('maze.png'), (0, 0))
         pygame.draw.rect(screen, color, rect)
         pygame.draw.rect(screen, (31, 71, 49), rect, width=5)  # темная обводка
         screen.blit(text, (text_x, text_y))
         for i in range(1, len(lines) + 1):
-            write_text(lines[i - 1], text_x - 30, text_y + 35 * i, 35, text_color)
+            write_text(screen, lines[i - 1], text_x - 30, text_y + 35 * i, 35, text_color)
         play_again.update()
         go_back.update()
         pygame.display.update()
 
 
-def write_text(text, x, y, size, text_color):
+def write_text(screen, text, x, y, size, text_color):
     font = pygame.font.Font(None, size)
     text = font.render(text, True, text_color)
     screen.blit(text, (x, y))
@@ -166,9 +171,3 @@ def change_word_form(word, number):
     word = morph.parse(word)[0]
     word = word.make_agree_with_number(number)[0]
     return word
-
-
-if __name__ == '__main__':
-    start_game((960, 600), 60, 1, 'players/black_player/black_player_walk_right.png')
-    # Называем по принципу - monsters/monster2/monster2_walk_right.png
-    # простой - 60, средний - 40, сложный - 35

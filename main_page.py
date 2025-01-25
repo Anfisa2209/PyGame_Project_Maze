@@ -6,7 +6,7 @@ import pygame
 import pygame_gui
 
 import authorise_window
-from generate_maze import MazeGenerator
+from game_code import start_game
 
 
 def load_image(task, colorkey=None):
@@ -79,14 +79,18 @@ class Button:
             if self.task == 'Играть':
                 choose_level()
             if self.task in ['Легкий уровень', 'Средний уровень', 'Сложный уровень']:
+                # простой - 60, средний - 50, сложный - 40
                 if self.task == 'Легкий уровень':
                     cell_size = 60
+                    difficulty = 1
                 elif self.task == 'Средний уровень':
                     cell_size = 50
+                    difficulty = 2
                 else:
                     cell_size = 40
-                generator = MazeGenerator(WINDOW_SIZE, cell_size)
-                generator.main_loop()
+                    difficulty = 3
+                player_pic_name = 'players/' + players_pos['current'] + '/' + players_pos['current'] + '_walk_right.png'
+                start_game(cell_size, difficulty, player_pic_name)
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
@@ -244,7 +248,7 @@ def open_close_menu():
     """Открывает или закрывает окно с меню"""
     global exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn
     if OPENED_MENU:
-        points = [(WIDTH * 3 / 4, 0), WINDOW_SIZE]
+        points = [(screen.width * 3 / 4, 0), screen.size]
         pygame.draw.rect(screen, '#2E8B57', points)
         exit_image = pygame.transform.scale(button_image, (200, 70))
         exit_btn = Button(image=exit_image, x_pos=WIDTH - exit_image.get_width() // 2,
@@ -306,7 +310,7 @@ def main(user_id):
     play_button = Button(image=play_btn_image, x_pos=WIDTH // 2,
                          y_pos=(HEIGHT - play_btn_image.get_height()) // 2, task='Играть')
     menu_image = load_image('buttons/eye_menu.png', -1)  # картинка кнопки меню
-    menu_button = Button(image=menu_image, x_pos=WIDTH - 50, y_pos=40, task='Меню')
+    menu_button = Button(image=menu_image, x_pos=screen.width - 50, y_pos=40, task='Меню')
     cur_player_card = Button(load_image('cards/player_card.png', -1), x_pos=150, y_pos=WIDTH / 4,
                              task='карта игрока')
 
@@ -341,7 +345,7 @@ def main(user_id):
         screen.blit(maze_image, (0, 0))
         if OPENED_MENU:
             all_buttons.extend((exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn))
-            pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), WINDOW_SIZE])
+            pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), screen.size])
         MANAGER.update(time_delta)
         for btn in all_buttons:
             btn.update()
