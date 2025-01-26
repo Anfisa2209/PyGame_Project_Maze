@@ -164,11 +164,13 @@ def statistic():
             text = font.render('Вы не зарегистрированы', True, 'red')
             screen.blit(text, (340, 250))
         else:
-            request = 'SELECT cherries, time FROM Statistic JOIN Person ON user_id = ? WHERE id = ?'
-            cherry_eaten = cursor.execute('SELECT max_cherry FROM Statistic JOIN Person ON user_id = ? WHERE id = ?',
-                                          (USER_ID, USER_ID)).fetchone()[0]
-            cherry, time = cursor.execute(request, (USER_ID, USER_ID)).fetchone()
-
+            try:
+                request = 'SELECT cherries, time FROM Statistic JOIN Person ON user_id = ? WHERE id = ?'
+                cherry_eaten = cursor.execute('SELECT max_cherry FROM Statistic JOIN Person ON user_id = ? WHERE id = ?',
+                                              (USER_ID, USER_ID)).fetchone()[0]
+                cherry, time = cursor.execute(request, (USER_ID, USER_ID)).fetchone()
+            except TypeError:
+                cherry_eaten, cherry, time = 0, 0, 0
             lines = [f'Вы потратили {time} (мин) времени в игре',
                      f"Ваш рекорд по вишенкам: {cherry_eaten}",
                      f'За все время вы съели {cherry} {game_code.change_word_form("вишенка", cherry)}']
@@ -355,6 +357,7 @@ def main(user_id):
             MANAGER.process_events(event)
 
         screen.blit(maze_image, (0, 0))
+        game_code.write_text(screen, 'CheerryMaze', 330, 50, 65, (186, 28, 29))
         if OPENED_MENU:
             all_buttons.extend((exit_btn, authorise_btn, statistics_btn, instructions_btn))
             pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), screen.size])
