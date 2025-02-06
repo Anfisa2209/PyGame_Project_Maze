@@ -45,6 +45,7 @@ def choose_pos_for_spike():
     if result not in lst_spikes:
         lst_spikes.append(result)
         xy = 'x' if result[0][0] == result[1][0] else 'y'
+        print(result, xy)
         return result[0], xy
     return choose_pos_for_spike()
 
@@ -245,7 +246,7 @@ class Spikes(pygame.sprite.Sprite):
         cur_image = pygame.transform.scale(self.animation[self.current_frame], (self.cell_size, self.cell_size))
         if self.direction == 'x':
             cur_image = pygame.transform.rotate(cur_image, 90)
-        screen.blit(pygame.transform.flip(cur_image, False, self.direction == 'y'), self.pos)
+        screen.blit(pygame.transform.flip(cur_image, False, False), self.pos)
 
     def update_animation(self):
         if self.is_activated:
