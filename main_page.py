@@ -5,9 +5,7 @@ import sqlite3
 import pygame
 import pygame_gui
 
-import authorise_window
 import game_code
-from game_code import start_game, play_music
 
 
 def load_image(task, colorkey=None):
@@ -91,7 +89,7 @@ class Button:
                     cell_size = 40
                     difficulty = 3
                 player_pic_name = 'players/' + players_pos['current'] + '/' + players_pos['current'] + '_walk_right.png'
-                start_game(cell_size, difficulty, player_pic_name, USER_ID)
+                game_code.start_game(cell_size, difficulty, player_pic_name, USER_ID)
             if self.task == 'Меню':
                 OPENED_MENU = not OPENED_MENU
                 open_close_menu()
@@ -166,8 +164,8 @@ def statistic():
         else:
             try:
                 request = 'SELECT cherries, time FROM Statistic JOIN Person ON user_id = ? WHERE id = ?'
-                cherry_eaten = cursor.execute('SELECT max_cherry FROM Statistic JOIN Person ON user_id = ? WHERE id = ?',
-                                              (USER_ID, USER_ID)).fetchone()[0]
+                max_cherry_request = 'SELECT max_cherry FROM Statistic JOIN Person ON user_id = ? WHERE id = ?'
+                cherry_eaten = cursor.execute(max_cherry_request, (USER_ID, USER_ID)).fetchone()[0]
                 cherry, time = cursor.execute(request, (USER_ID, USER_ID)).fetchone()
             except TypeError:
                 cherry_eaten, cherry, time = 0, 0, 0
@@ -261,7 +259,7 @@ def choose_level():
 
 def open_close_menu():
     """Открывает или закрывает окно с меню"""
-    global exit_btn, authorise_btn, settings_btn, statistics_btn, instructions_btn
+    global exit_btn, authorise_btn, statistics_btn, instructions_btn
     if OPENED_MENU:
         points = [(screen.width * 3 / 4, 0), screen.size]
         pygame.draw.rect(screen, '#2E8B57', points)
@@ -377,9 +375,3 @@ def main(user_id):
 
 
 go_back = Button(pygame.transform.scale(button_image, (100, 50)), 70, 35, text='Назад', task='вернуться назад')
-
-if __name__ == '__main__':
-    song = play_music('music.mp3', True)
-    INF = 9999
-    song.play(INF)
-    main(USER_ID)
