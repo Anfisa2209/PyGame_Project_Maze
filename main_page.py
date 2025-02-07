@@ -182,7 +182,7 @@ def statistic():
 def write(instruction_text, font, text_coord):
     # пишет текст инструкции
     for line in instruction_text:
-        string_rendered = font.render(line, True, (242, 162, 58))
+        string_rendered = font.render(line, True, (255, 255, 255))  # (242, 162, 58)
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -355,7 +355,7 @@ def main(user_id):
             MANAGER.process_events(event)
 
         screen.blit(maze_image, (0, 0))
-        game_code.write_text(screen, 'CheerryMaze', 330, 50, 65, (186, 28, 29))
+        game_code.write_text(screen, 'CheerryMaze', 320, 50, 75, (99, 4, 102))  # "#7D0057"
         if OPENED_MENU:
             all_buttons.extend((exit_btn, authorise_btn, statistics_btn, instructions_btn))
             pygame.draw.rect(screen, '#2E8B57', [(WIDTH * 3 / 4, 0), screen.size])

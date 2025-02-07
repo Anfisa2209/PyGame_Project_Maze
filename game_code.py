@@ -88,7 +88,9 @@ def start_game(cell_size, difficulty, player_pic_name, user_id):
             player.update()
             player.update_animation()
             player.draw(screen)
-            write_text(screen, str(player.health), cell_size // 3, cell_size // 3, 40, (209, 96, 88))
+            lives = str(player.health)
+            size = 40 if len(lives) == 1 else 35
+            write_text(screen, lives, cell_size // 3, cell_size // 3, size, (209, 96, 88))
             minutes = ((pygame.time.get_ticks() - start_time) // 1000) // 60
             if player.health == 0 or not player.is_alive:
                 in_game = False
@@ -99,6 +101,7 @@ def start_game(cell_size, difficulty, player_pic_name, user_id):
                            player.picked_cherries, minutes, player.health, user_id)
             clock.tick(fps)
             pygame.display.flip()
+        main_page.choose_level()
 
 
 def play_music(name, long):
@@ -153,7 +156,7 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
+                main_page.choose_level()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 go_back.on_click(pygame.mouse.get_pos())
                 if play_again.check_mouse_pos(pygame.mouse.get_pos()):
@@ -169,7 +172,7 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
         pygame.display.update()
 
 
-def write_text(screen, text, x, y, size, text_color,):
+def write_text(screen, text, x, y, size, text_color, ):
     font = pygame.font.Font(None, size)
     text = font.render(text, True, text_color)
     screen.blit(text, (x, y))
