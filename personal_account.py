@@ -55,8 +55,9 @@ def change_personal_data(old_login, old_password, new_login, new_password):
             create_confirmation_window('Ошибка пароля!', 'Такой пароль уже существует - придумайте другой', MANAGER)
             return
         if not check_password(new_password):
-            password_rules = {"Длина не может быть меньше 8": len(password) < 8, "Добавьте букву": password.isdigit(),
-                              "Добавьте цифру": not bool(i for i in password if i.isdigit())}
+            password_rules = {"Длина не может быть меньше 8": len(new_password) < 8,
+                              "Добавьте букву": new_password.isdigit(),
+                              "Добавьте цифру": not bool(i for i in new_password if i.isdigit())}
             error = [key for key in password_rules if password_rules[key]][0]
             create_confirmation_window('Ошибка пароля!', error, MANAGER)
             return
@@ -120,7 +121,3 @@ def main(user_id):
         MANAGER.update(time_delta)
         MANAGER.draw_ui(screen)
         pygame.display.update()
-
-
-if __name__ == '__main__':
-    main(1)
