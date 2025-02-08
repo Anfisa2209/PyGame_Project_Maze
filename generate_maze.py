@@ -104,6 +104,7 @@ class MazeGenerator:
         self.grid = Grid(self.size, self.scale)
         self.stack = []
         self.clock = pygame.time.Clock()
+        self.fps = 10
 
         self.curr_c = self.grid[0][0]
         self.curr_c.visited = True
@@ -114,6 +115,8 @@ class MazeGenerator:
                 from main_page import choose_level
                 self.screen.fill((0, 0, 0))
                 choose_level()
+            if event.type == pygame.MOUSEWHEEL:
+                self.fps += 1
             # Позже уберем, пока еще надо
 
     def remove_walls(self, a, b):
@@ -190,4 +193,5 @@ class MazeGenerator:
         while self.flag_wall_ready:
             self.handle_events()
             self.draw()
+            self.clock.tick(self.fps)
             pygame.display.flip()

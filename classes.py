@@ -39,15 +39,28 @@ def create_list_wall():
     # Создания списка всех стен (координаты начала и конца)
 
 
-def choose_pos_for_spike():
+def choose_pos_for_spike(size):
     walls = create_list_wall()
     result = walls[random.randint(0, len(walls) - 1)]
+    xy = 0
     if result not in lst_spikes:
         lst_spikes.append(result)
-        xy = 'x' if result[0][0] == result[1][0] else 'y'
-        print(result, xy)
+
+        if result[0][0] == result[1][0]:
+            xy = 90
+            if result[0][0] == 0:
+                xy = 90
+            elif result[0][0] == size[0]:
+                xy = 270
+        elif result[0][1] == result[1][1]:
+            xy = 0
+            if result[0][1] == 0:
+                xy = 0
+            elif result[0][1] == size[1]:
+                xy = 180
+
         return result[0], xy
-    return choose_pos_for_spike()
+    return choose_pos_for_spike(size)
 
 
 def check_conflict_with_wall(pos, direction=''):
@@ -244,8 +257,7 @@ class Spikes(pygame.sprite.Sprite):
 
     def draw(self, screen):
         cur_image = pygame.transform.scale(self.animation[self.current_frame], (self.cell_size, self.cell_size))
-        if self.direction == 'x':
-            cur_image = pygame.transform.rotate(cur_image, 90)
+        cur_image = pygame.transform.rotate(cur_image, self.direction)
         screen.blit(pygame.transform.flip(cur_image, False, False), self.pos)
 
     def update_animation(self):

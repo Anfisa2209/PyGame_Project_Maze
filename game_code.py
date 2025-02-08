@@ -53,10 +53,10 @@ def start_game(cell_size, difficulty, player_pic_name, user_id):
 
         player = classes.Player(player_pic_name, (window_size[0] - cell_size, window_size[1] - cell_size),
                                 *player_group)
-        for _ in range(difficulty * 10):
-            pos, direction = classes.choose_pos_for_spike()
+        for _ in range(difficulty * 17):
+            pos, direction = classes.choose_pos_for_spike(window_size)
             if pos == player.pos or player.get_coords(pos) == (0, 0):
-                pos, direction = classes.choose_pos_for_spike()
+                pos, direction = classes.choose_pos_for_spike(window_size)
             spike = classes.Spikes(pos, cell_size, direction, spikes_group)
             spikes.append(spike)
 
@@ -124,9 +124,9 @@ def game_ended(screen, text, cell_size, difficulty, player_pic_name, cherry, tim
     go_back = main_page.Button(button_image, rect[0] * 1.5 + 150, rect[1] + 325, 'Играть', 'На главную')
     cherry_word = change_word_form("вишенка", cherry) if cherry != 1 else 'вишенку'
     minutes = change_word_form("минута", time) if time != 1 else 'минуту'
-    lines = [f'Вы собрали {cherry}/{10 * difficulty} {cherry_word}',
-             f'У вас осталось {health} {change_word_form("жизнь", health)}',
-             f'Вы потратили {time} {minutes}']
+    lines = [f'\nВы собрали {cherry}/{10 * difficulty} {cherry_word}',
+             f'\nУ вас осталось {health} {change_word_form("жизнь", health)}',
+             f'\nВы потратили {time} {minutes}']
 
     font = pygame.font.Font(None, 50)
     text_color = (199, 62, 64) if text == 'Вы проиграли!' else (242, 162, 58)
