@@ -55,7 +55,7 @@ class Button:
         self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
         self.icon = icon
         if self.text:
-            font = pygame.font.SysFont("Calibri", font_size, bold=True)
+            font = pygame.font.SysFont("consolas", font_size, bold=True)
             self.text = font.render(self.text, True, "#408080")
             self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
         if self.icon:
@@ -158,7 +158,7 @@ def statistic():
             manager.process_events(event)
         screen.blit(maze_image, (0, 0))
         if not USER_ID:
-            font = pygame.font.Font(None, 30)
+            font = pygame.font.SysFont('comicsansms', 23)
             text = font.render('Вы не зарегистрированы', True, 'red')
             screen.blit(text, (340, 250))
         else:
@@ -169,10 +169,11 @@ def statistic():
                 cherry, time = cursor.execute(request, (USER_ID, USER_ID)).fetchone()
             except TypeError:
                 cherry_eaten, cherry, time = 0, 0, 0
-            lines = [f'Вы потратили {time} (мин) времени в игре',
-                     f"Ваш рекорд по вишенкам: {cherry_eaten}",
+            lines = [f'\nВы потратили {time} (мин) времени в игре',
+                     f"\n"
+                     f"Ваш рекорд по вишенкам: {cherry_eaten}\n",
                      f'За все время вы съели {cherry} {game_code.change_word_form("вишенка", cherry)}']
-            write(lines, pygame.font.Font(None, 50), 100)
+            write(lines, pygame.font.Font('comicsansms', 50), 100)
         go_back.update()
         manager.update(time_delta)
         manager.draw_ui(screen)
