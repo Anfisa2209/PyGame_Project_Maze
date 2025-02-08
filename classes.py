@@ -10,7 +10,6 @@ lst_spikes = []
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
     if colorkey is not None:
@@ -45,7 +44,6 @@ def choose_pos_for_spike():
     if result not in lst_spikes:
         lst_spikes.append(result)
         xy = 'x' if result[0][0] == result[1][0] else 'y'
-        print(result, xy)
         return result[0], xy
     return choose_pos_for_spike()
 
@@ -76,9 +74,6 @@ def check_conflict_with_wall(pos, direction=''):
     # Проверка столкновения со стеной
 
 
-FPS = 80
-
-
 class Player:
     def __init__(self, pic_name, pos, *group):
         super().__init__(*group)
@@ -90,7 +85,6 @@ class Player:
         self.is_alive = True
         self.health = 5
         self.speed = 2
-        self.is_alive = True
         self.picked_cherries = 0  # сколько вишенок собрал герой
         # Параметры здоровья, скорости, положения, картинка и проверка на то, что существо живо.
 
@@ -144,7 +138,6 @@ class Player:
             self.animation = self.walk_down
             self.moving = True
         else:
-
             self.current_frame = 0  # Если персонаж не двигается, остановить анимацию
 
     def draw(self, screen):
@@ -152,8 +145,6 @@ class Player:
 
     def do_die(self):
         self.is_alive = False
-
-    # В этой функции существо умирает и удаляестя с поля(опционально - анимация смерти)
 
     def move(self, direction):
         if direction == 'up':
